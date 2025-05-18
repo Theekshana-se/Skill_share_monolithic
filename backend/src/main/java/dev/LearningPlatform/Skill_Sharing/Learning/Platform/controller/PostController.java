@@ -4,11 +4,13 @@ import dev.LearningPlatform.Skill_Sharing.Learning.Platform.model.Post;
 import dev.LearningPlatform.Skill_Sharing.Learning.Platform.service.PostService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.Optional;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -24,13 +26,19 @@ public class PostController {
     public ResponseEntity<Post> createPost(
             @RequestParam @Valid String title,
             @RequestParam @Valid String description,
-            @RequestParam @Valid String slogan) {
+            @RequestParam @Valid String slogan,
+            @RequestParam @Valid String userEmail,
+            @RequestParam(required = false) MultipartFile image) {
         try {
             Post post = new Post();
             post.setTitle(title);
             post.setDescription(description);
             post.setSlogan(slogan);
-            Post savedPost = postService.createPost(post);
+            post.setUserEmail(userEmail);
+            post.setCreatedAt(LocalDateTime.now());
+            post.setUpdatedAt(LocalDateTime.now());
+            
+            Post savedPost = postService.createPost(post, image);
             return ResponseEntity.ok(savedPost);
         } catch (Exception e) {
             e.printStackTrace();
@@ -39,8 +47,14 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Post>> getAllPosts() {
-        List<Post> posts = postService.getAllPosts();
+    public ResponseEntity<List<Post>> getAllPosts(
+            @RequestParam(required = false) String userEmail) {
+        List<Post> posts;
+        if (userEmail != null && !userEmail.isEmpty()) {
+            posts = postService.getPostsByUserEmail(userEmail);
+        } else {
+            posts = postService.getAllPosts();
+        }
         return ResponseEntity.ok(posts);
     }
 
@@ -55,13 +69,21 @@ public class PostController {
             @PathVariable String id,
             @RequestParam String title,
             @RequestParam String description,
-            @RequestParam String slogan) {
+            @RequestParam String slogan,
+            @RequestParam(required = false) MultipartFile image) {
         try {
-            Post updatedPost = new Post();
+            Optional<Post> existingPost = postService.getPostById(id);
+            if (existingPost.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            Post updatedPost = existingPost.get();
             updatedPost.setTitle(title);
             updatedPost.setDescription(description);
             updatedPost.setSlogan(slogan);
-            Post savedPost = postService.updatePost(id, updatedPost);
+            updatedPost.setUpdatedAt(LocalDateTime.now());
+            
+            Post savedPost = postService.updatePost(id, updatedPost, image);
             return ResponseEntity.ok(savedPost);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

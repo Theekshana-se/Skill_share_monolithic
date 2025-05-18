@@ -1,20 +1,21 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, BookOpen, Calendar, Clock, User, School } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, Clock, School, ChevronDown, ChevronRight } from 'lucide-react';
 import { Course, courseService } from '@/api/courseService';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const CourseDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [course, setCourse] = useState<Course | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated } = useAuth();
+  const [openModules, setOpenModules] = useState<{ [key: string]: boolean }>({});
 
   useEffect(() => {
     if (!id) return;
@@ -22,24 +23,8 @@ const CourseDetail = () => {
     const fetchCourse = async () => {
       setIsLoading(true);
       try {
-        // In a real app, we'd fetch from the API
-        // const courseData = await courseService.getCourseById(id);
-        
-        // Using mock data for now
-        setTimeout(() => {
-          const mockCourse = {
-            id: '2',
-            courseName: 'Advanced JavaScript',
-            courseLevel: 'Intermediate',
-            institute: 'Code Masters',
-            startDate: '2023-07-15',
-            duration: 6,
-            courseType: 'Online',
-            progress: 50
-          };
-          setCourse(mockCourse);
-          setIsLoading(false);
-        }, 800);
+        const courseData = await courseService.getCourseById(id);
+        setCourse(courseData);
       } catch (error) {
         console.error('Error fetching course:', error);
         toast({
@@ -47,12 +32,20 @@ const CourseDetail = () => {
           title: "Error",
           description: "Failed to load course details"
         });
+      } finally {
         setIsLoading(false);
       }
     };
 
     fetchCourse();
   }, [id]);
+
+  const toggleModule = (moduleId: string) => {
+    setOpenModules(prev => ({
+      ...prev,
+      [moduleId]: !prev[moduleId]
+    }));
+  };
 
   const enrollInCourse = async () => {
     if (!course) return;
@@ -160,7 +153,7 @@ const CourseDetail = () => {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Start Date</p>
-                  <p className="font-medium">{course.startDate}</p>
+                  <p className="font-medium">{course.startDate || 'Not specified'}</p>
                 </div>
               </div>
               <div className="flex items-center">
@@ -182,7 +175,82 @@ const CourseDetail = () => {
               </div>
             </div>
             
-            <div className="flex justify-center">
+            {/* Course Content Section */}
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4">Course Content</h3>
+              <div className="space-y-4">
+                {course.modules?.map((module, index) => (
+                  <Collapsible
+                    key={module.id || index}
+                    open={openModules[module.id || index.toString()]}
+                    onOpenChange={() => toggleModule(module.id || index.toString())}
+                    className="border rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-4 hover:bg-gray-50">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 font-medium">
+                          {index + 1}
+                        </div>
+                        <div className="flex-grow">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-lg font-medium text-gray-900">Module {index + 1}: {module.title}</h4>
+                            <span className="text-sm text-gray-500">
+                              ({module.lessons?.length || 0} {module.lessons?.length === 1 ? 'lesson' : 'lessons'})
+                            </span>
+                          </div>
+                          {module.description && (
+                            <p className="text-sm text-gray-500 mt-1">{module.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0 text-gray-400">
+                        {openModules[module.id || index.toString()] ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5" />
+                        )}
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="border-t px-4 py-3 bg-gray-50">
+                        <div className="space-y-3">
+                          {module.lessons?.map((lesson, lessonIndex) => (
+                            <div
+                              key={lesson.id || lessonIndex}
+                              className="bg-white p-3 rounded-md shadow-sm hover:shadow transition-shadow"
+                            >
+                              <div className="flex items-center space-x-3">
+                                <div className="flex-shrink-0 w-6 h-6 bg-purple-50 rounded-full flex items-center justify-center text-purple-600 text-sm font-medium">
+                                  {lessonIndex + 1}
+                                </div>
+                                <div className="flex-grow">
+                                  <h5 className="font-medium text-gray-900">Lesson {lessonIndex + 1}: {lesson.title}</h5>
+                                  {lesson.content && (
+                                    <p className="text-sm text-gray-500 mt-1">{lesson.content}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {(!module.lessons || module.lessons.length === 0) && (
+                            <div className="text-center py-4">
+                              <p className="text-sm text-gray-500">No lessons available in this module</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                ))}
+                {(!course.modules || course.modules.length === 0) && (
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border border-dashed">
+                    <p className="text-gray-500">No modules available for this course.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex justify-center mt-8">
               {isAuthenticated ? (
                 <Button onClick={enrollInCourse} className="w-full md:w-auto">
                   Enroll in this Course

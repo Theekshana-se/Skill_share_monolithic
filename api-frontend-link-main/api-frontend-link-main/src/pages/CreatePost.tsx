@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postService } from '@/api/postService';
@@ -9,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { Image } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CreatePost = () => {
   const [formData, setFormData] = useState({
@@ -20,6 +20,19 @@ const CreatePost = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Redirect if not authenticated
+  React.useEffect(() => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Unauthorized",
+        description: "Please log in to create a post.",
+      });
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -45,6 +58,16 @@ const CreatePost = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user?.email) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to create a post.",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
@@ -53,6 +76,7 @@ const CreatePost = () => {
       data.append('title', formData.title);
       data.append('description', formData.description);
       data.append('slogan', formData.slogan);
+      data.append('userEmail', user.email);
       if (image) {
         data.append('image', image);
       }
@@ -76,6 +100,10 @@ const CreatePost = () => {
       setIsSubmitting(false);
     }
   };
+
+  if (!user) {
+    return null; // Don't render anything while redirecting
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">

@@ -35,6 +35,10 @@ export const authService = {
     }
   },
 
+  googleLogin: () => {
+    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+  },
+
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

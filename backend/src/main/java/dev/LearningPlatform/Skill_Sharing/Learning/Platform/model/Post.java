@@ -3,6 +3,7 @@ package dev.LearningPlatform.Skill_Sharing.Learning.Platform.model;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import java.time.LocalDateTime;
 
 @Document(collection = "posts")
 public class Post {
@@ -17,6 +18,21 @@ public class Post {
 
     @NotBlank(message = "Slogan is required")
     private String slogan;
+
+    @NotBlank(message = "User email is required")
+    private String userEmail;
+
+    private String imageUrl;
+    
+    private LocalDateTime createdAt;
+    
+    private LocalDateTime updatedAt;
+
+    // Constructor
+    public Post() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 
     // Getters and setters
     public String getId() {
@@ -49,5 +65,37 @@ public class Post {
 
     public void setSlogan(String slogan) {
         this.slogan = slogan;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

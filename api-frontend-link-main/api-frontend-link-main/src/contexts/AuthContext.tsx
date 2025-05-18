@@ -9,15 +9,19 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   googleLogin: () => void;
+  setUser: (user: User) => void;
+  loginWithToken: (token: string) => void;
 }
 
-export const AuthContext = createContext<AuthContextType>({
-  isAuthenticated: false,
-  user: null,
-  login: async () => {},
-  logout: () => {},
-  googleLogin: () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(authService.isAuthenticated());
@@ -37,6 +41,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
   }, []);
+
+  const loginWithToken = (token: string) => {
+    localStorage.setItem('token', token);
+    setIsAuthenticated(true);
+  };
 
   const login = async (email: string, password: string) => {
     try {
@@ -73,24 +82,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const googleLogin = () => {
-    toast({
-      title: 'Not Implemented',
-      description: 'Google login is not yet available.',
-      variant: 'destructive',
-    });
+    try {
+      authService.googleLogin();
+    } catch (error: any) {
+      console.error('Google login error:', error);
+      toast({
+        title: 'Google Login Failed',
+        description: 'Could not initiate Google login. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, googleLogin }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
+  const value = {
+    isAuthenticated,
+    user,
+    login,
+    logout,
+    googleLogin,
+    setUser,
+    loginWithToken
+  };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

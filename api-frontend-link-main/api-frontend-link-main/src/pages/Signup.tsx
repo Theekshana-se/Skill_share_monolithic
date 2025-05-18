@@ -43,7 +43,6 @@ const Signup = () => {
       return;
     }
 
-    // Optional: Validate file types and sizes
     if (formData.profilePhoto && !['image/jpeg', 'image/png'].includes(formData.profilePhoto.type)) {
       toast({
         variant: "destructive",
@@ -112,138 +111,172 @@ const Signup = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <Card className="max-w-md w-full">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-          <CardDescription className="text-center">
-            Enter your details to create your account
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="John Doe"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
+    <div className="container mx-auto px-4 py-8 min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">Join Our Community</h1>
+
+        <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-md">
+          <CardHeader className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-t-lg">
+            <CardTitle className="text-2xl font-semibold text-gray-800">Create an Account</CardTitle>
+            <CardDescription className="text-gray-600">
+              Fill in your details to get started
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6 space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-gray-700">Full Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="border-gray-300 focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-gray-700">Username</Label>
+                  <Input
+                    id="username"
+                    name="username"
+                    placeholder="johndoe"
+                    value={formData.username}
+                    onChange={handleChange}
+                    required
+                    className="border-gray-300 focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-gray-700">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="border-gray-300 focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="age" className="text-gray-700">Age</Label>
+                  <Input
+                    id="age"
+                    name="age"
+                    type="number"
+                    min="13"
+                    value={formData.age}
+                    onChange={handleChange}
+                    required
+                    className="border-gray-300 focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-gray-700">Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="border-gray-300 focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-gray-700">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    className="border-gray-300 focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location" className="text-gray-700">Location</Label>
+                <Input
+                  id="location"
+                  name="location"
+                  placeholder="New York"
+                  value={formData.location}
+                  onChange={handleChange}
+                  className="border-gray-300 focus:border-purple-500"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bio" className="text-gray-700">Bio</Label>
+                <Input
+                  id="bio"
+                  name="bio"
+                  placeholder="Tell us about yourself"
+                  value={formData.bio}
+                  onChange={handleChange}
+                  className="border-gray-300 focus:border-purple-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="profilePhoto" className="text-gray-700">Profile Photo</Label>
+                  <Input
+                    id="profilePhoto"
+                    name="profilePhoto"
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    onChange={handleChange}
+                    className="border-gray-300 focus:border-purple-500"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="coverPhoto" className="text-gray-700">Cover Photo</Label>
+                  <Input
+                    id="coverPhoto"
+                    name="coverPhoto"
+                    type="file"
+                    accept="image/jpeg,image/png"
+                    onChange={handleChange}
+                    className="border-gray-300 focus:border-purple-500"
+                  />
+                </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Creating account...' : 'Sign Up'}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-b-lg">
+            <div className="w-full text-center">
+              <p className="text-gray-600">
+                Already have an account?{' '}
+                <Link to="/login" className="text-purple-600 hover:text-purple-700 font-medium hover:underline">
+                  Log in here
+                </Link>
+              </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                placeholder="johndoe"
-                value={formData.username}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="age">Age</Label>
-              <Input
-                id="age"
-                name="age"
-                type="number"
-                min="13"
-                value={formData.age}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                name="location"
-                placeholder="New York"
-                value={formData.location}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Input
-                id="bio"
-                name="bio"
-                placeholder="Tell us about yourself"
-                value={formData.bio}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="profilePhoto">Profile Photo</Label>
-              <Input
-                id="profilePhoto"
-                name="profilePhoto"
-                type="file"
-                accept="image/jpeg,image/png"
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="coverPhoto">Cover Photo</Label>
-              <Input
-                id="coverPhoto"
-                name="coverPhoto"
-                type="file"
-                accept="image/jpeg,image/png"
-                onChange={handleChange}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating account...' : 'Sign Up'}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="text-purple-600 hover:underline font-medium">
-              Log in
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 };

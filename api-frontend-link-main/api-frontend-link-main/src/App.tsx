@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,7 @@ import UserProfile from "./pages/UserProfile";
 import EditProfile from "./pages/EditProfile";
 import EditPost from "./pages/EditPost";
 import EditCourse from "./pages/EditCourse";
+import OAuth2Callback from "./pages/OAuth2Callback";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +36,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/oauth2/callback" element={<OAuth2Callback />} />
               <Route path="/posts" element={<Posts />} />
               <Route path="/posts/:id" element={<PostDetail />} />
               <Route path="/posts/:id/edit" element={<EditPost />} />
