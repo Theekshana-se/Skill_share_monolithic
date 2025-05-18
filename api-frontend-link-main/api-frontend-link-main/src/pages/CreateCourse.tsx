@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from '@/components/ui/use-toast';
 import { Course, courseService } from '@/api/courseService';
 import { useAuth } from '@/contexts/AuthContext';
+import { Plus, Trash2 } from 'lucide-react';
 
 const lessonSchema = z.object({
   title: z.string().min(3, 'Lesson title must be at least 3 characters'),
@@ -36,7 +37,7 @@ const formSchema = z.object({
 
 const CreateCourse = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { user: currentUser, isAuthenticated } = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -75,6 +76,7 @@ const CreateCourse = () => {
         duration: values.duration,
         courseType: values.courseType,
         progress: 0,
+        userId: currentUser?.email,
         modules: values.modules.map((module, mIndex) => ({
           id: `mod-${mIndex + 1}`,
           title: module.title,
@@ -105,7 +107,7 @@ const CreateCourse = () => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isAuthenticated) {
       toast({
         variant: 'destructive',
@@ -119,29 +121,29 @@ const CreateCourse = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Create New Course</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-6">Create New Course</h1>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Course Details</CardTitle>
-            <CardDescription>
-              Fill in the information below to create your course, including modules and lessons
+        <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-md">
+          <CardHeader className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-t-lg">
+            <CardTitle className="text-2xl font-semibold text-gray-800">Course Details</CardTitle>
+            <CardDescription className="text-gray-600">
+              Craft your course with engaging modules and lessons
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6 space-y-6">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Course Fields */}
                 <FormField
                   control={form.control}
                   name="courseName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Course Name</FormLabel>
+                      <FormLabel className="text-gray-700">Course Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Web Development Fundamentals" {...field} />
+                        <Input placeholder="e.g. Web Development Fundamentals" className="border-gray-300 focus:border-purple-500" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-red-500" />
                     </FormItem>
                   )}
                 />
@@ -150,11 +152,11 @@ const CreateCourse = () => {
                   name="institute"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Institute/Organization</FormLabel>
+                      <FormLabel className="text-gray-700">Institute/Organization</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g. Tech Academy" {...field} />
+                        <Input placeholder="e.g. Tech Academy" className="border-gray-300 focus:border-purple-500" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-red-500" />
                     </FormItem>
                   )}
                 />
@@ -164,20 +166,20 @@ const CreateCourse = () => {
                     name="courseLevel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Course Level</FormLabel>
+                        <FormLabel className="text-gray-700">Course Level</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select level" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Beginner">Beginner</SelectItem>
-                            <SelectItem value="Intermediate">Intermediate</SelectItem>
-                            <SelectItem value="Advanced">Advanced</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
+                            <FormControl>
+                              <SelectTrigger className="border-gray-300 focus:border-purple-500">
+                                <SelectValue placeholder="Select level" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="bg-white border-gray-200">
+                              <SelectItem value="Beginner" className="hover:bg-purple-50">Beginner</SelectItem>
+                              <SelectItem value="Intermediate" className="hover:bg-purple-50">Intermediate</SelectItem>
+                              <SelectItem value="Advanced" className="hover:bg-purple-50">Advanced</SelectItem>
+                            </SelectContent>
+                          </Select>     
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
@@ -186,20 +188,20 @@ const CreateCourse = () => {
                     name="courseType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Course Type</FormLabel>
+                        <FormLabel className="text-gray-700">Course Type</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Online">Online</SelectItem>
-                            <SelectItem value="In-Person">In-Person</SelectItem>
-                            <SelectItem value="Hybrid">Hybrid</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
+                              <FormControl>
+                                <SelectTrigger className="border-gray-300 focus:border-purple-500">
+                                  <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-white border-gray-200">
+                                <SelectItem value="Online" className="hover:bg-purple-50">Online</SelectItem>
+                                <SelectItem value="In-Person" className="hover:bg-purple-50">In-Person</SelectItem>
+                                <SelectItem value="Hybrid" className="hover:bg-purple-50">Hybrid</SelectItem>
+                              </SelectContent>
+                            </Select>
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
@@ -210,11 +212,11 @@ const CreateCourse = () => {
                     name="startDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Start Date</FormLabel>
+                        <FormLabel className="text-gray-700">Start Date</FormLabel>
                         <FormControl>
-                          <Input type="date" {...field} />
+                          <Input type="date" className="border-gray-300 focus:border-purple-500" {...field} />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
@@ -223,19 +225,19 @@ const CreateCourse = () => {
                     name="duration"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Duration (weeks)</FormLabel>
+                        <FormLabel className="text-gray-700">Duration (weeks)</FormLabel>
                         <FormControl>
-                          <Input type="number" min="1" {...field} />
+                          <Input type="number" min="1" className="border-gray-300 focus:border-purple-500" {...field} />
                         </FormControl>
-                        <FormMessage />
+                        <FormMessage className="text-red-500" />
                       </FormItem>
                     )}
                   />
                 </div>
 
                 {/* Modules */}
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold">Modules</h2>
+                <div className="space-y-6">
+                  <h2 className="text-xl font-semibold text-gray-800">Modules & Lessons</h2>
                   {moduleFields.map((module, moduleIndex) => {
                     const { fields: lessonFields, append: appendLesson, remove: removeLesson } = useFieldArray({
                       control: form.control,
@@ -243,117 +245,122 @@ const CreateCourse = () => {
                     });
 
                     return (
-                      <Card key={module.id} className="p-4">
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="text-lg font-medium">Module {moduleIndex + 1}</h3>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => removeModule(moduleIndex)}
-                            disabled={moduleFields.length === 1}
-                          >
-                            Remove Module
-                          </Button>
-                        </div>
-                        <FormField
-                          control={form.control}
-                          name={`modules.${moduleIndex}.title`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Module Title</FormLabel>
-                              <FormControl>
-                                <Input placeholder="e.g. Introduction to Programming" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`modules.${moduleIndex}.description`}
-                          render={({ field }) => (
-                            <FormItem className="mt-4">
-                              <FormLabel>Module Description</FormLabel>
-                              <FormControl>
-                                <Textarea placeholder="Describe the module content" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="mt-4">
-                          <h4 className="text-md font-semibold mb-2">Lessons</h4>
-                          {lessonFields.map((lesson, lessonIndex) => (
-                            <div key={lesson.id} className="ml-4 border-l-2 pl-4 mb-4">
-                              <div className="flex justify-between items-center mb-2">
-                                <h5 className="text-sm font-medium">Lesson {lessonIndex + 1}</h5>
-                                <Button
-                                  type="button"
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => removeLesson(lessonIndex)}
-                                  disabled={lessonFields.length === 1}
-                                >
-                                  Remove Lesson
-                                </Button>
+                      <Card key={module.id} className="border-0 shadow-md bg-gradient-to-br from-white to-indigo-50">
+                        <CardContent className="p-6">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-medium text-gray-700">Module {moduleIndex + 1}</h3>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => removeModule(moduleIndex)}
+                              disabled={moduleFields.length === 1}
+                              className="hover:bg-red-600 hover:text-white"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" /> Remove
+                            </Button>
+                          </div>
+                          <FormField
+                            control={form.control}
+                            name={`modules.${moduleIndex}.title`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-gray-700">Module Title</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g. Introduction to Programming" className="border-gray-300 focus:border-purple-500" {...field} />
+                                </FormControl>
+                                <FormMessage className="text-red-500" />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`modules.${moduleIndex}.description`}
+                            render={({ field }) => (
+                              <FormItem className="mt-4">
+                                <FormLabel className="text-gray-700">Module Description</FormLabel>
+                                <FormControl>
+                                  <Textarea placeholder="Describe the module content" className="border-gray-300 focus:border-purple-500" {...field} />
+                                </FormControl>
+                                <FormMessage className="text-red-500" />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="mt-4">
+                            <h4 className="text-md font-semibold text-gray-700 mb-2">Lessons</h4>
+                            {lessonFields.map((lesson, lessonIndex) => (
+                              <div key={lesson.id} className="ml-6 border-l-2 border-purple-200 pl-4 mb-4 bg-white/80 rounded-lg shadow-sm">
+                                <div className="flex justify-between items-center mb-2">
+                                  <h5 className="text-sm font-medium text-gray-600">Lesson {lessonIndex + 1}</h5>
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => removeLesson(lessonIndex)}
+                                    disabled={lessonFields.length === 1}
+                                    className="hover:bg-red-600 hover:text-white"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" /> Remove
+                                  </Button>
+                                </div>
+                                <FormField
+                                  control={form.control}
+                                  name={`modules.${moduleIndex}.lessons.${lessonIndex}.title`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-gray-700">Lesson Title</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="e.g. Variables and Data Types" className="border-gray-300 focus:border-purple-500" {...field} />
+                                      </FormControl>
+                                      <FormMessage className="text-red-500" />
+                                    </FormItem>
+                                  )}
+                                />
+                                <FormField
+                                  control={form.control}
+                                  name={`modules.${moduleIndex}.lessons.${lessonIndex}.content`}
+                                  render={({ field }) => (
+                                    <FormItem className="mt-2">
+                                      <FormLabel className="text-gray-700">Lesson Content</FormLabel>
+                                      <FormControl>
+                                        <Textarea placeholder="Enter lesson content" className="border-gray-300 focus:border-purple-500" {...field} />
+                                      </FormControl>
+                                      <FormMessage className="text-red-500" />
+                                    </FormItem>
+                                  )}
+                                />
                               </div>
-                              <FormField
-                                control={form.control}
-                                name={`modules.${moduleIndex}.lessons.${lessonIndex}.title`}
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Lesson Title</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="e.g. Variables and Data Types" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              <FormField
-                                control={form.control}
-                                name={`modules.${moduleIndex}.lessons.${lessonIndex}.content`}
-                                render={({ field }) => (
-                                  <FormItem className="mt-2">
-                                    <FormLabel>Lesson Content</FormLabel>
-                                    <FormControl>
-                                      <Textarea placeholder="Enter lesson content" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          ))}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="mt-2"
-                            onClick={() => appendLesson({ title: '', content: '' })}
-                          >
-                            Add Lesson
-                          </Button>
-                        </div>
+                            ))}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="mt-2 bg-purple-50 text-purple-600 hover:bg-purple-100"
+                              onClick={() => appendLesson({ title: '', content: '' })}
+                            >
+                              <Plus className="h-4 w-4 mr-1" /> Add Lesson
+                            </Button>
+                          </div>
+                        </CardContent>
                       </Card>
                     );
                   })}
                   <Button
                     type="button"
                     variant="outline"
+                    className="bg-purple-50 text-purple-600 hover:bg-purple-100 w-full md:w-auto"
                     onClick={() => appendModule({ title: '', description: '', lessons: [{ title: '', content: '' }] })}
                   >
-                    Add Module
+                    <Plus className="h-5 w-5 mr-2" /> Add Module
                   </Button>
                 </div>
 
                 <CardFooter className="px-0 pt-6">
                   <div className="flex justify-end gap-4 w-full">
-                    <Button type="button" variant="outline" onClick={() => navigate('/courses')}>
+                    <Button type="button" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-100" onClick={() => navigate('/courses')}>
                       Cancel
                     </Button>
-                    <Button type="submit">Create Course</Button>
+                    <Button type="submit" className="bg-purple-600 text-white hover:bg-purple-700">Create Course</Button>
                   </div>
                 </CardFooter>
               </form>

@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Edit, MapPin, Mail, User as UserIcon } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Course, courseService } from '@/api/courseService';
+import UserCourses from '@/components/profile/UserCourses'; // Import the new component
 
 const UserProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -130,6 +131,10 @@ const UserProfile: React.FC = () => {
     );
   }
 
+  const handleDeleteCourse = (courseId: string) => {
+    setCourses(courses.filter((course) => course.id !== courseId));
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -219,46 +224,11 @@ const UserProfile: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="courses">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Courses</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {courses.length > 0 ? (
-                  <ul className="space-y-4">
-                    {courses.map((course) => (
-                      <li key={course.id} className="border p-4 rounded-md">
-                        <h3 className="text-lg font-medium">{course.courseName}</h3>
-                        <p>Level: {course.courseLevel}</p>
-                        <p>Institute: {course.institute}</p>
-                        <p>Progress: {course.progress}%</p>
-                        {course.modules && course.modules.length > 0 && (
-                          <div className="mt-2">
-                            <h4 className="font-semibold">Modules:</h4>
-                            <ul className="ml-4 list-disc">
-                              {course.modules.map((module) => (
-                                <li key={module.id}>
-                                  {module.title}
-                                  {module.lessons && module.lessons.length > 0 && (
-                                    <ul className="ml-4 list-circle">
-                                      {module.lessons.map((lesson) => (
-                                        <li key={lesson.id}>{lesson.title}</li>
-                                      ))}
-                                    </ul>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-500">No courses yet.</p>
-                )}
-              </CardContent>
-            </Card>
+            <UserCourses
+              courses={courses}
+              isOwnProfile={isOwnProfile}
+              onDeleteCourse={handleDeleteCourse}
+            />
           </TabsContent>
 
           <TabsContent value="posts">

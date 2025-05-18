@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,17 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Search, Plus, BookOpen } from 'lucide-react';
-
-interface Course {
-  id: string;
-  courseName: string;
-  courseLevel: string;
-  institute: string;
-  startDate?: string;
-  duration: number;
-  courseType: string;
-  progress: number;
-}
+import { Course, courseService } from '@/api/courseService';
 
 const Courses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -28,43 +17,14 @@ const Courses = () => {
   useEffect(() => {
     const fetchCourses = async () => {
       setIsLoading(true);
-      // Mock data for now - would normally use courseService.getAllCourses()
-      setTimeout(() => {
-        const mockCourses = [
-          {
-            id: '1',
-            courseName: 'Web Development Fundamentals',
-            courseLevel: 'Beginner',
-            institute: 'Tech Academy',
-            startDate: '2023-06-01',
-            duration: 8,
-            courseType: 'Online',
-            progress: 75
-          },
-          {
-            id: '2',
-            courseName: 'Advanced JavaScript',
-            courseLevel: 'Intermediate',
-            institute: 'Code Masters',
-            startDate: '2023-07-15',
-            duration: 6,
-            courseType: 'Online',
-            progress: 50
-          },
-          {
-            id: '3',
-            courseName: 'UX/UI Design Principles',
-            courseLevel: 'Beginner',
-            institute: 'Design School',
-            startDate: '2023-08-01',
-            duration: 4,
-            courseType: 'Hybrid',
-            progress: 25
-          }
-        ];
-        setCourses(mockCourses);
+      try {
+        const allCourses = await courseService.getAllCourses();
+        setCourses(allCourses);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      } finally {
         setIsLoading(false);
-      }, 1000);
+      }
     };
 
     fetchCourses();
@@ -91,7 +51,7 @@ const Courses = () => {
           </div>
           {isAuthenticated && (
             <Link to="/create-course">
-              <Button className="whitespace-nowrap">
+              <Button className="whitespace-nowrap bg-purple-600 text-white hover:bg-purple-700">
                 <Plus className="mr-2 h-5 w-5" />
                 Create Course
               </Button>
@@ -124,46 +84,46 @@ const Courses = () => {
       ) : filteredCourses.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredCourses.map((course) => (
-            <Card key={course.id} className="h-full overflow-hidden hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 text-purple-600 mb-4">
-                  <BookOpen />
+            <Card key={course.id} className="h-full overflow-hidden hover:shadow-lg transition-shadow border border-gray-200">
+              <CardContent className="p-6 bg-gradient-to-br from-white to-gray-50">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-purple-100 text-purple-600 mb-4 shadow-md">
+                  <BookOpen className="h-8 w-8" />
                 </div>
-                <CardTitle className="text-xl mb-2">{course.courseName}</CardTitle>
-                <CardDescription className="mb-4">
+                <CardTitle className="text-xl font-semibold text-gray-800 mb-2">{course.courseName}</CardTitle>
+                <CardDescription className="mb-4 text-gray-600">
                   {course.institute} • {course.courseLevel}
                 </CardDescription>
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                <div className="flex justify-between text-sm text-gray-500 mb-2">
                   <span>Duration: {course.duration} weeks</span>
                   <span>{course.courseType}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
                   <div 
-                    className="bg-purple-600 h-2 rounded-full" 
+                    className="bg-purple-600 h-2.5 rounded-full transition-all duration-300"
                     style={{ width: `${course.progress}%` }}
                   ></div>
                 </div>
               </CardContent>
-              <CardFooter className="px-6 py-4 bg-gray-50 border-t">
-                <div className="flex justify-between items-center w-full">
-                  <span className="text-sm font-medium">
-                    Progress: {course.progress}%
-                  </span>
-                  <Link to={`/courses/${course.id}`}>
-                    <Button variant="outline" size="sm">View Details</Button>
-                  </Link>
-                </div>
+              <CardFooter className="px-6 py-4 bg-gray-50 border-t flex justify-between items-center">
+                <span className="text-sm font-medium text-gray-700">
+                  Progress: {course.progress}%
+                </span>
+                <Link to={`/courses/${course.id}`}>
+                  <Button variant="outline" size="sm" className="border-purple-600 text-purple-600 hover:bg-purple-50">
+                    View Details
+                  </Button>
+                </Link>
               </CardFooter>
             </Card>
           ))}
         </div>
       ) : (
-        <div className="text-center py-16">
+        <div className="text-center py-16 bg-gray-50 rounded-lg shadow-md">
           <h3 className="text-xl font-semibold text-gray-700">No courses found</h3>
           <p className="text-gray-500 mt-2">Try adjusting your search or create a new course</p>
           {isAuthenticated && (
             <Link to="/create-course" className="mt-6 inline-block">
-              <Button>Create Course</Button>
+              <Button className="bg-purple-600 text-white hover:bg-purple-700">Create Course</Button>
             </Link>
           )}
         </div>

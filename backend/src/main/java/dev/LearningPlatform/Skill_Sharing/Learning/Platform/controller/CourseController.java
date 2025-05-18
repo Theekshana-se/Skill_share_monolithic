@@ -3,6 +3,8 @@ package dev.LearningPlatform.Skill_Sharing.Learning.Platform.controller;
 import dev.LearningPlatform.Skill_Sharing.Learning.Platform.model.Course;
 import dev.LearningPlatform.Skill_Sharing.Learning.Platform.service.CourseService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
@@ -21,7 +23,10 @@ public class CourseController {
     }
 
     @PostMapping
-    public ResponseEntity<Course> createCourse(@Valid @RequestBody Course course) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Course> createCourse(@Valid @RequestBody Course course, Authentication auth) {
+        String userEmail = auth.getName(); // Extract email from JWT
+        course.setUserId(userEmail); // Set userId as email
         Course savedCourse = courseService.createCourse(course);
         return ResponseEntity.ok(savedCourse);
     }
@@ -46,8 +51,18 @@ public class CourseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Course> updateCourse(@PathVariable String id, @Valid @RequestBody Course updatedCourse) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Course> updateCourse(@PathVariable String id, @Valid @RequestBody Course updatedCourse, Authentication auth) {
         try {
+            Optional<Course> existingCourse = courseService.getCourseById(id);
+            if (existingCourse.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            String userEmail = auth.getName(); // Extract email from JWT
+            if (!existingCourse.get().getUserId().equals(userEmail)) {
+                return ResponseEntity.status(403).body(null); // Unauthorized
+            }
+            updatedCourse.setUserId(userEmail); // Ensure userId remains email
             Course savedCourse = courseService.updateCourse(id, updatedCourse);
             return ResponseEntity.ok(savedCourse);
         } catch (IllegalArgumentException e) {
@@ -56,8 +71,17 @@ public class CourseController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCourse(@PathVariable String id) {
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteCourse(@PathVariable String id, Authentication auth) {
         try {
+            Optional<Course> course = courseService.getCourseById(id);
+            if (course.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            String userEmail = auth.getName(); // Extract email from JWT
+            if (!course.get().getUserId().equals(userEmail)) {
+                return ResponseEntity.status(403).build(); // Unauthorized
+            }
             courseService.deleteCourse(id);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {

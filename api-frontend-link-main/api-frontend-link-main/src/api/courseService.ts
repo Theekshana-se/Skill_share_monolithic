@@ -1,16 +1,16 @@
 import apiClient from './apiClient';
 
 export interface Lesson {
-  id?: string;
-  title: string;
-  content?: string;
+  id?: string; // Optional for new lessons
+  title: string; // Required
+  content?: string; // Optional
 }
 
 export interface Module {
-  id?: string;
-  title: string;
-  description?: string;
-  lessons: Lesson[];
+  id?: string; // Optional for new modules
+  title: string; // Required
+  description?: string; // Optional
+  lessons: Lesson[]; // Required array
 }
 
 export interface Course {
@@ -23,7 +23,7 @@ export interface Course {
   courseType: string;
   progress: number;
   userId?: string;
-  modules?: Module[];
+  modules?: Module[]; // Optional array
 }
 
 export const courseService = {
@@ -43,7 +43,7 @@ export const courseService = {
           duration: 8,
           courseType: 'Online',
           progress: 75,
-          userId: '6829528800de5d639525c2e0',
+          userId: 'example@example.com', // Use email
           modules: []
         }
       ];
@@ -64,8 +64,8 @@ export const courseService = {
     const userStr = localStorage.getItem('user');
     const user = userStr ? JSON.parse(userStr) : null;
     try {
-      if (user && user.id) {
-        course.userId = user.id; // Use ObjectId from auth
+      if (user && user.email) {
+        course.userId = user.email; // Use email from auth
       }
       const response = await apiClient.post('/courses', course);
       return response.data;
@@ -75,7 +75,7 @@ export const courseService = {
       const newCourse = {
         ...course,
         id: Date.now().toString(),
-        userId: user?.id,
+        userId: user?.email || 'default@example.com',
         modules: course.modules || []
       };
       localCourses.push(newCourse);
@@ -85,7 +85,12 @@ export const courseService = {
   },
 
   updateCourse: async (id: string, course: Course): Promise<Course> => {
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
     try {
+      if (user && user.email) {
+        course.userId = user.email; // Use email from auth
+      }
       const response = await apiClient.put(`/courses/${id}`, course);
       return response.data;
     } catch (error) {
