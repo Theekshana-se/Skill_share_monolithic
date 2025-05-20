@@ -13,6 +13,7 @@ import { Course, courseService } from '@/api/courseService';
 import UserCourses from '@/components/profile/UserCourses';
 import PostForm from '@/components/PostForm';
 import PostList from '@/components/PostList';
+import UserEnrolledCourses from '@/components/profile/UserEnrolledCourses';
 
 const UserProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -241,6 +242,10 @@ const UserProfile: React.FC = () => {
               )}
               <PostList userEmail={user.email} refreshTrigger={refreshPosts} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="enrolled-courses">
+            <UserEnrolledCourses />
           </TabsContent>
         </Tabs>
       </div>
