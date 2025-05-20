@@ -6,9 +6,12 @@ export interface Post {
   description: string;
   slogan: string;
   imageUrl?: string;
+  imageBase64?: string;
   userEmail: string;
   createdAt?: string;
   updatedAt?: string;
+  likes?: number;
+  dislikes?: number;
 }
 
 export const postService = {
@@ -83,6 +86,28 @@ export const postService = {
       return response.data;
     } catch (error) {
       console.error(`Error fetching posts for user ${email}:`, error);
+      throw error;
+    }
+  },
+
+  // Like a post
+  likePost: async (id: string): Promise<Post> => {
+    try {
+      const response = await apiClient.post(`/posts/${id}/like`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error liking post ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Dislike a post
+  dislikePost: async (id: string): Promise<Post> => {
+    try {
+      const response = await apiClient.post(`/posts/${id}/dislike`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error disliking post ${id}:`, error);
       throw error;
     }
   }

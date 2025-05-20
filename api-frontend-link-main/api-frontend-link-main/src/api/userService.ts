@@ -3,6 +3,7 @@ import { courseService, Course } from './courseService';
 import { postService, Post } from './postService';
 
 export interface User {
+  avatarUrl: string;
   id?: string;
   name: string;
   username: string;

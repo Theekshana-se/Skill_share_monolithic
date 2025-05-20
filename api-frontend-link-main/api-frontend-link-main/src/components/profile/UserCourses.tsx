@@ -62,43 +62,43 @@ const UserCourses = ({ courses, isOwnProfile, onDeleteCourse }: UserCoursesProps
                       )}
                     </div>
                     <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-lg">{course.courseName}</h3>
-                          <p className="text-sm text-gray-500">{course.institute} • {course.courseLevel} • {course.courseType}</p>
-                        </div>
-                        <div className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                          {course.progress}% complete
-                        </div>
-                      </div>
-                      <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-purple-600 h-2 rounded-full"
-                          style={{ width: `${course.progress}%` }}
-                        ></div>
-                      </div>
-                      <div className="mt-4 flex justify-end gap-2">
-                        <Link to={`/courses/${course.id}`}>
-                          <Button variant="outline" size="sm">View Course</Button>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-lg">{course.courseName}</h3>
+                      <p className="text-sm text-gray-500">{course.institute} • {course.courseLevel} • {course.courseType}</p>
+                    </div>
+                    <div className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
+                      {course.progress}% complete
+                    </div>
+                  </div>
+                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-purple-600 h-2 rounded-full"
+                      style={{ width: `${course.progress}%` }}
+                    ></div>
+                  </div>
+                  <div className="mt-4 flex justify-end gap-2">
+                    <Link to={`/courses/${course.id}`}>
+                      <Button variant="outline" size="sm">View Course</Button>
+                    </Link>
+                    {isOwnProfile && (
+                      <>
+                        <Link to={`/courses/${course.id}/edit`}>
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Edit</span>
+                          </Button>
                         </Link>
-                        {isOwnProfile && (
-                          <>
-                            <Link to={`/courses/${course.id}/edit`}>
-                              <Button variant="outline" size="sm">
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit</span>
-                              </Button>
-                            </Link>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleDeleteCourse(course.id!)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                              <span className="sr-only">Delete</span>
-                            </Button>
-                          </>
-                        )}
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleDeleteCourse(course.id!)}
+                        >
+                          <Trash2 className="h-4 w-4 text-red-500" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </>
+                    )}
                       </div>
                     </div>
                   </div>

@@ -45,7 +45,7 @@ public class EnrollmentService {
         }
 
         // Check if already enrolled
-        if (enrollmentRepository.existsByUserEmailAndCourseId(userEmail, courseId)) {
+        if (EnrollmentRepository.existsByUserEmailAndCourseId(userEmail, courseId)) {
             System.out.println("[DEBUG] User already enrolled: " + userEmail + " in course: " + courseId);
             throw new IllegalArgumentException("User is already enrolled in this course");
         }
@@ -101,6 +101,6 @@ public class EnrollmentService {
     }
 
     public boolean isUserEnrolled(String userEmail, String courseId) {
-        return enrollmentRepository.existsByUserEmailAndCourseId(userEmail, courseId);
+        return EnrollmentRepository.existsByUserEmailAndCourseId(userEmail, courseId);
     }
 } 

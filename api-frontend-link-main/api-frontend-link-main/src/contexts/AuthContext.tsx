@@ -47,13 +47,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(true);
   };
 
+  // Helper to set user and persist to localStorage
+  const setUserAndPersist = (user: User) => {
+    setUser(user);
+    localStorage.setItem('user', JSON.stringify(user));
+  };
+
   const login = async (email: string, password: string) => {
     try {
       const response: AuthResponse = await authService.login({ email, password });
       if (!response.user?.id || !/^[0-9a-fA-F]{24}$/.test(response.user.id)) {
         throw new Error('Invalid user ID from login response');
       }
-      setUser(response.user);
+      setUserAndPersist(response.user);
       setIsAuthenticated(true);
       toast({
         title: 'Login Successful',
@@ -74,6 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     authService.logout();
     setUser(null);
     setIsAuthenticated(false);
+    localStorage.removeItem('user');
     toast({
       title: 'Logged Out',
       description: 'You have been successfully logged out.',
@@ -100,7 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     googleLogin,
-    setUser,
+    setUser: setUserAndPersist,
     loginWithToken
   };
 

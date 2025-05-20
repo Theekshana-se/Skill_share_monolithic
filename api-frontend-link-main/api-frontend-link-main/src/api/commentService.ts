@@ -1,130 +1,154 @@
+import axios from 'axios';
 
-import apiClient from './apiClient';
+const API_URL = 'http://localhost:8080/api';
 
 export interface Comment {
   id?: string;
   postId: string;
-  author: string;
+  content: string;
+  userEmail: string; // Ensure this matches the backend's serialized field name
+  authorName?: string;
   avatarUrl?: string;
   createdAt?: string;
-  content: string;
+  updatedAt?: string;
   likes?: number;
   dislikes?: number;
-  verified?: boolean;
-  reply?: boolean;
+  reply: boolean;
   replyTo?: string;
+}
+
+function getAuthHeaders() {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.warn('No authentication token found');
+    return {};
+  }
+  
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json'
+  };
+}
+
+async function refreshToken() {
+  try {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+    const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
+    const newToken = response.data.token;
+    localStorage.setItem('token', newToken);
+    console.log('Token refreshed successfully:', newToken.substring(0, 10) + '...');
+    return newToken;
+  } catch (error) {
+    console.error('Failed to refresh token:', error);
+    throw new Error('Session expired. Please log in again.');
+  }
 }
 
 export const commentService = {
   getCommentsByPostId: async (postId: string): Promise<Comment[]> => {
     try {
-      const response = await apiClient.get(`/comments/post/${postId}`);
+      const response = await axios.get(`${API_URL}/comments/post/${postId}`, {
+        headers: getAuthHeaders(),
+      });
+      console.log('Fetched comments raw response:', response.data);
       return response.data;
-    } catch (error) {
-      console.error(`Error fetching comments for post ${postId}:`, error);
-      // Return mock or local data as fallback
-      const localComments = localStorage.getItem(`comments_${postId}`);
-      return localComments ? JSON.parse(localComments) : [];
+    } catch (error: any) {
+      console.error('Error fetching comments:', error);
+      throw error;
     }
   },
-  
+
   createComment: async (comment: Comment): Promise<Comment> => {
     try {
-      const response = await apiClient.post('/comments', comment);
+      const response = await axios.post(`${API_URL}/comments`, comment, {
+        headers: getAuthHeaders(),
+      });
+      console.log('Create comment API response:', response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating comment:', error);
-      // Store comment locally as fallback
-      const newComment = {
-        ...comment,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        likes: 0,
-        dislikes: 0
-      };
-      
-      const localComments = JSON.parse(localStorage.getItem(`comments_${comment.postId}`) || '[]');
-      localComments.push(newComment);
-      localStorage.setItem(`comments_${comment.postId}`, JSON.stringify(localComments));
-      
-      return newComment;
-    }
-  },
-  
-  replyToComment: async (commentId: string, reply: Comment): Promise<Comment> => {
-    try {
-      const response = await apiClient.post(`/comments/${commentId}/reply`, reply);
-      return response.data;
-    } catch (error) {
-      console.error(`Error replying to comment ${commentId}:`, error);
-      // Store reply locally as fallback
-      const newReply = {
-        ...reply,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        reply: true,
-        replyTo: commentId,
-        likes: 0,
-        dislikes: 0
-      };
-      
-      const localComments = JSON.parse(localStorage.getItem(`comments_${reply.postId}`) || '[]');
-      localComments.push(newReply);
-      localStorage.setItem(`comments_${reply.postId}`, JSON.stringify(localComments));
-      
-      return newReply;
-    }
-  },
-  
-  likeComment: async (commentId: string): Promise<Comment> => {
-    try {
-      const response = await apiClient.put(`/comments/${commentId}/like`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error liking comment ${commentId}:`, error);
       throw error;
     }
   },
-  
-  dislikeComment: async (commentId: string): Promise<Comment> => {
-    try {
-      const response = await apiClient.put(`/comments/${commentId}/dislike`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error disliking comment ${commentId}:`, error);
-      throw error;
-    }
-  },
-  
-  // Add methods for editing and deleting comments
+
   updateComment: async (id: string, content: string): Promise<Comment> => {
     try {
-      const response = await apiClient.put(`/comments/${id}`, { content });
-      return response.data;
-    } catch (error) {
-      console.error(`Error updating comment ${id}:`, error);
-      // Update comment locally as fallback
-      const postId = id.split('_')[0]; // Assuming comment IDs include the post ID
-      const localComments = JSON.parse(localStorage.getItem(`comments_${postId}`) || '[]');
-      const updatedComments = localComments.map((c: Comment) => 
-        c.id === id ? { ...c, content, updatedAt: new Date().toISOString() } : c
-      );
-      localStorage.setItem(`comments_${postId}`, JSON.stringify(updatedComments));
+      console.log('Updating comment:', { id, content });
+      const headers = getAuthHeaders();
       
-      const updatedComment = updatedComments.find((c: Comment) => c.id === id);
-      return updatedComment || { id, content } as Comment;
+      const response = await axios.put(
+        `${API_URL}/comments/${id}`,
+        { content },
+        { 
+          headers,
+          validateStatus: (status) => status < 500
+        }
+      );
+      
+      if (response.status === 403) {
+        throw new Error('You are not authorized to edit this comment');
+      }
+      
+      if (response.status === 401) {
+        throw new Error('Please log in to edit comments');
+      }
+      
+      return response.data;
+    } catch (error: any) {
+      console.error('Error updating comment:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Failed to update comment');
     }
   },
-  
+
   deleteComment: async (id: string, postId: string): Promise<void> => {
     try {
-      await apiClient.delete(`/comments/${id}`);
-    } catch (error) {
-      console.error(`Error deleting comment ${id}:`, error);
-      // Delete comment locally as fallback
-      const localComments = JSON.parse(localStorage.getItem(`comments_${postId}`) || '[]');
-      const filteredComments = localComments.filter((c: Comment) => c.id !== id);
-      localStorage.setItem(`comments_${postId}`, JSON.stringify(filteredComments));
+      const headers = getAuthHeaders();
+      const response = await axios.delete(`${API_URL}/comments/${id}`, {
+        headers,
+        validateStatus: (status) => status < 500
+      });
+      
+      if (response.status === 403) {
+        throw new Error('You are not authorized to delete this comment');
+      }
+      
+      if (response.status === 401) {
+        throw new Error('Please log in to delete comments');
+      }
+    } catch (error: any) {
+      console.error('Error deleting comment:', error);
+      throw new Error(error.response?.data?.message || error.message || 'Failed to delete comment');
     }
-  }
+  },
+
+  likeComment: async (id: string): Promise<Comment> => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/comments/${id}/like`,
+        {},
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error liking comment:', error);
+      throw error;
+    }
+  },
+
+  dislikeComment: async (id: string): Promise<Comment> => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/comments/${id}/dislike`,
+        {},
+        { headers: getAuthHeaders() }
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error disliking comment:', error);
+      throw error;
+    }
+  },
 };

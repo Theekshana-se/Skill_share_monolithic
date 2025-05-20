@@ -25,4 +25,8 @@ public interface CommentRepository extends MongoRepository<Comment, String> {
     // Optional future extensions — examples:
     // List<Comment> findByAuthor(String author);
     // List<Comment> findByVerifiedTrueOrderByCreatedAtDesc();
+
+    List<Comment> findByPostIdOrderByCreatedAtDesc(String postId);
+    List<Comment> findByUserEmail(String userEmail);
+    void deleteByPostId(String postId);
 }

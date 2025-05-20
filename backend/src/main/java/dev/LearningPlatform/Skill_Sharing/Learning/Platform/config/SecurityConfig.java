@@ -80,7 +80,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/enrollments").permitAll()
                 .requestMatchers("/api/courses/**").permitAll()
                 .requestMatchers("/error").permitAll()
-                .requestMatchers("/api/comments/**").permitAll()
+                // Comment endpoints - GET is public, others require auth
+                .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/comments/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/comments/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/comments/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/users/**").permitAll()
                 // Secure all other endpoints
                 .anyRequest().authenticated()
