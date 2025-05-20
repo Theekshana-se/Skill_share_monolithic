@@ -6,22 +6,23 @@ import { Button } from '@/components/ui/button';
 const Contact = () => (
   <div className="container mx-auto px-4 py-12">
     <h1 className="text-3xl font-bold mb-8 text-purple-700 text-center animate-fade-in">Contact & Support</h1>
-    <div className="flex flex-col md:flex-row items-center justify-center gap-12 mb-8 max-w-3xl mx-auto animate-fade-in">
-      {/* Landline Phone Emoji Animation */}
-      <div className="flex-shrink-0 mb-8 md:mb-0 flex flex-col items-center">
-        <div className="text-[5rem] md:text-[7rem] animate-phone-bounce select-none" style={{ filter: 'drop-shadow(0 4px 16px #a78bfa55)' }}>
-          <span role="img" aria-label="landline">☎️</span>
-        </div>
-        <p className="text-center text-gray-400 text-sm mt-2">We're just a message away!</p>
+    {/* Telephone Emoji at the Top */}
+    <div className="flex flex-col items-center mb-6 animate-fade-in">
+      <div className="text-[5rem] md:text-[7rem] animate-phone-bounce select-none mb-2" style={{ filter: 'drop-shadow(0 4px 16px #a78bfa55)' }}>
+        <span role="img" aria-label="landline">☎️</span>
       </div>
-      {/* Contact Form Card */}
-      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl shadow-2xl p-10 w-full max-w-md border border-purple-100">
-        <h2 className="text-2xl font-bold mb-4 text-purple-700">Contact Us</h2>
-        <form className="space-y-5">
-          <Input placeholder="Your Name" required className="bg-white/80" />
-          <Input type="email" placeholder="Your Email" required className="bg-white/80" />
-          <Textarea placeholder="Your Message" rows={4} required className="bg-white/80" />
-          <Button type="submit" className="w-full text-lg py-2">Send Message</Button>
+      <p className="text-center text-gray-400 text-sm">We're just a message away!</p>
+    </div>
+    {/* Contact Form Centered Below Emoji */}
+    <div className="flex justify-center mb-12 animate-fade-in">
+      <div className="bg-white rounded-3xl shadow-2xl p-14 w-full max-w-2xl border border-gray-200 flex flex-col items-center">
+        <h2 className="text-3xl font-bold mb-2 text-purple-700 text-center">Contact Us</h2>
+        <p className="text-gray-500 text-lg mb-8 text-center max-w-lg">Have a question, suggestion, or need help? Fill out the form below and our team will get back to you as soon as possible.</p>
+        <form className="space-y-7 w-full max-w-lg">
+          <Input placeholder="Your Name" required className="bg-white/90 text-lg px-6 py-4 rounded-xl border border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition" />
+          <Input type="email" placeholder="Your Email" required className="bg-white/90 text-lg px-6 py-4 rounded-xl border border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition" />
+          <Textarea placeholder="Your Message" rows={6} required className="bg-white/90 text-lg px-6 py-4 rounded-xl border border-gray-300 focus:border-purple-400 focus:ring-2 focus:ring-purple-100 transition" />
+          <Button type="submit" className="w-full text-lg py-3 rounded-xl bg-purple-700 hover:bg-purple-800 transition font-semibold shadow-md">Send Message</Button>
         </form>
       </div>
     </div>

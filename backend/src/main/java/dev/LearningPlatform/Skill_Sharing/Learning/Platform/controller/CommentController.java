@@ -61,9 +61,9 @@ public class CommentController {
         try {
             System.out.println("Debug - Attempting to update comment: " + id);
             Comment updated = commentService.updateComment(id, details.getContent());
-            return updated != null
-                    ? ResponseEntity.ok(updated)
-                    : ResponseEntity.notFound().build();
+        return updated != null
+                ? ResponseEntity.ok(updated)
+                : ResponseEntity.notFound().build();
         } catch (Exception e) {
             System.out.println("Debug - Unexpected error: " + e.getMessage());
             return ResponseEntity.status(500).body(null);
@@ -74,7 +74,7 @@ public class CommentController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         try {
             commentService.deleteComment(id);
-            return ResponseEntity.noContent().build();
+        return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }

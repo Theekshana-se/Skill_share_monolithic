@@ -91,7 +91,7 @@ public class CommentService {
     public Comment likeComment(String id) {
         return commentRepository.findById(id)
                 .map(comment -> {
-                    comment.setLikes(comment.getLikes() + 1);
+            comment.setLikes(comment.getLikes() + 1);
                     return commentRepository.save(comment);
                 })
                 .orElseThrow(() -> new RuntimeException("Comment not found"));
@@ -100,7 +100,7 @@ public class CommentService {
     public Comment dislikeComment(String id) {
         return commentRepository.findById(id)
                 .map(comment -> {
-                    comment.setDislikes(comment.getDislikes() + 1);
+            comment.setDislikes(comment.getDislikes() + 1);
                     return commentRepository.save(comment);
                 })
                 .orElseThrow(() -> new RuntimeException("Comment not found"));

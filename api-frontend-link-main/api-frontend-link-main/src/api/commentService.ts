@@ -60,7 +60,7 @@ export const commentService = {
       throw error;
     }
   },
-
+  
   createComment: async (comment: Comment): Promise<Comment> => {
     try {
       const response = await axios.post(`${API_URL}/comments`, comment, {
@@ -102,7 +102,7 @@ export const commentService = {
       throw new Error(error.response?.data?.message || error.message || 'Failed to update comment');
     }
   },
-
+  
   deleteComment: async (id: string, postId: string): Promise<void> => {
     try {
       const headers = getAuthHeaders();
@@ -123,7 +123,7 @@ export const commentService = {
       throw new Error(error.response?.data?.message || error.message || 'Failed to delete comment');
     }
   },
-
+  
   likeComment: async (id: string): Promise<Comment> => {
     try {
       const response = await axios.post(
@@ -137,7 +137,7 @@ export const commentService = {
       throw error;
     }
   },
-
+  
   dislikeComment: async (id: string): Promise<Comment> => {
     try {
       const response = await axios.post(

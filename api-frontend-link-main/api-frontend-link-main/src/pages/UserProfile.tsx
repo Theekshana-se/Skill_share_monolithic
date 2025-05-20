@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { Edit, MapPin, Mail, User as UserIcon } from 'lucide-react';
+import { Edit, MapPin, Mail, User as UserIcon, BookOpen, MessageCircle, GraduationCap } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Course, courseService } from '@/api/courseService';
 import UserCourses from '@/components/profile/UserCourses';
@@ -148,9 +148,9 @@ const UserProfile: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        <Card className="mb-6 overflow-hidden">
+        <Card className="mb-6 overflow-hidden bg-white/90 shadow-xl rounded-3xl border border-gray-200">
           {user.coverPhotoBase64 && (
-            <div className="h-48 overflow-hidden">
+            <div className="h-56 w-full overflow-hidden">
               <img
                 src={`data:image/jpeg;base64,${user.coverPhotoBase64}`}
                 alt="Cover"
@@ -159,72 +159,77 @@ const UserProfile: React.FC = () => {
             </div>
           )}
 
-          <CardContent className={`p-6 ${!user.coverPhotoBase64 ? '' : '-mt-16'}`}>
-            <div className="flex flex-col md:flex-row gap-6">
-              <Avatar className="h-32 w-32 border-4 border-white">
-                {user.profilePhotoBase64 ? (
-                  <img
-                    src={`data:image/jpeg;base64,${user.profilePhotoBase64}`}
-                    alt={user.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="bg-purple-200 text-purple-600 h-full w-full flex items-center justify-center text-4xl font-bold">
-                    {user.name?.charAt(0).toUpperCase()}
+          {/* Profile Details Below Cover */}
+          <div className="flex flex-col items-center -mt-14 mb-6">
+            <Avatar className="h-40 w-40 border-4 border-white shadow-lg bg-white">
+              {user.profilePhotoBase64 ? (
+                <img
+                  src={`data:image/jpeg;base64,${user.profilePhotoBase64}`}
+                  alt={user.name}
+                  className="h-full w-full object-cover rounded-full"
+                />
+              ) : (
+                <div className="bg-purple-200 text-purple-600 h-full w-full flex items-center justify-center text-5xl font-bold rounded-full">
+                  {user.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </Avatar>
+            <div className="mt-4 flex flex-col items-center">
+              <h1 className="text-3xl font-bold mb-1">{user.name}</h1>
+              <p className="text-gray-500 mb-2">@{user.username}</p>
+              <div className="flex flex-wrap gap-4 justify-center mb-2">
+                {user.location && (
+                  <div className="flex items-center text-gray-600">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    <span>{user.location}</span>
                   </div>
                 )}
-              </Avatar>
-
-              <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h1 className="text-2xl md:text-3xl font-bold">{user.name}</h1>
-                    <p className="text-gray-600">@{user.username}</p>
-                  </div>
-
-                  {isOwnProfile && (
-                    <Link to={`/profile/edit/${id}`}>
-                      <Button variant="outline" size="sm">
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Profile
-                      </Button>
-                    </Link>
-                  )}
+                <div className="flex items-center text-gray-600">
+                  <Mail className="h-4 w-4 mr-1" />
+                  <span>{user.email}</span>
                 </div>
-
-                <div className="mt-4 flex flex-wrap gap-4">
-                  {user.location && (
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      <span>{user.location}</span>
-                    </div>
-                  )}
+                {user.age && (
                   <div className="flex items-center text-gray-600">
-                    <Mail className="h-4 w-4 mr-1" />
-                    <span>{user.email}</span>
+                    <UserIcon className="h-4 w-4 mr-1" />
+                    <span>{user.age} years old</span>
                   </div>
-                  {user.age && (
-                    <div className="flex items-center text-gray-600">
-                      <UserIcon className="h-4 w-4 mr-1" />
-                      <span>{user.age} years old</span>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
+              {isOwnProfile && (
+                <Link to={`/profile/edit/${id}`}>
+                  <Button variant="outline" size="sm" className="mt-2">
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                </Link>
+              )}
             </div>
-          </CardContent>
+          </div>
         </Card>
 
+        {/* Enhanced Tabs */}
         <Tabs defaultValue="about">
-          <TabsList className="mb-6">
-            <TabsTrigger value="about">About</TabsTrigger>
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="posts">Posts</TabsTrigger>
-            <TabsTrigger value="enrolled-courses">Enrolled Courses</TabsTrigger>
+          <TabsList className="mt-4 mb-8 flex justify-center gap-4 bg-gray-100 rounded-full p-2 shadow-md w-full max-w-2xl mx-auto h-14">
+            <TabsTrigger value="about" className="flex flex-col items-center justify-center gap-1 h-10 min-w-[110px] rounded-full text-lg font-semibold text-gray-700 transition relative data-[state=active]:text-purple-700 data-[state=active]:bg-transparent focus:bg-transparent">
+              <span className="flex items-center justify-center gap-2 h-full"><UserIcon className="h-5 w-5" /> About</span>
+              <span className="h-2 w-2 rounded-full bg-purple-600 mt-1 transition-opacity duration-200 data-[state=active]:opacity-100 opacity-0"></span>
+            </TabsTrigger>
+            <TabsTrigger value="courses" className="flex flex-col items-center justify-center gap-1 h-10 min-w-[110px] rounded-full text-lg font-semibold text-gray-700 transition relative data-[state=active]:text-purple-700 data-[state=active]:bg-transparent focus:bg-transparent">
+              <span className="flex items-center justify-center gap-2 h-full"><BookOpen className="h-5 w-5" /> Courses</span>
+              <span className="h-2 w-2 rounded-full bg-purple-600 mt-1 transition-opacity duration-200 data-[state=active]:opacity-100 opacity-0"></span>
+            </TabsTrigger>
+            <TabsTrigger value="posts" className="flex flex-col items-center justify-center gap-1 h-10 min-w-[110px] rounded-full text-lg font-semibold text-gray-700 transition relative data-[state=active]:text-purple-700 data-[state=active]:bg-transparent focus:bg-transparent">
+              <span className="flex items-center justify-center gap-2 h-full"><MessageCircle className="h-5 w-5" /> Posts</span>
+              <span className="h-2 w-2 rounded-full bg-purple-600 mt-1 transition-opacity duration-200 data-[state=active]:opacity-100 opacity-0"></span>
+            </TabsTrigger>
+            <TabsTrigger value="enrolled-courses" className="flex flex-col items-center justify-center gap-1 h-10 min-w-[110px] rounded-full text-lg font-semibold text-gray-700 transition relative data-[state=active]:text-purple-700 data-[state=active]:bg-transparent focus:bg-transparent">
+              <span className="flex items-center justify-center gap-2 h-full"><GraduationCap className="h-5 w-5" /> Enrolled</span>
+              <span className="h-2 w-2 rounded-full bg-purple-600 mt-1 transition-opacity duration-200 data-[state=active]:opacity-100 opacity-0"></span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="about">
-            <Card>
+            <Card className="mb-6">
               <CardHeader>
                 <CardTitle>About Me</CardTitle>
               </CardHeader>

@@ -24,17 +24,17 @@ const CourseDetail = () => {
 
   const fetchCourseAndEnrollment = async () => {
     if (!id) return;
-    
-    try {
+
+      try {
       setLoading(true);
       setError(null);
 
       // Fetch course data
-      const courseData = await courseService.getCourseById(id);
+        const courseData = await courseService.getCourseById(id);
       if (!courseData) {
         throw new Error('Course not found');
       }
-      setCourse(courseData);
+        setCourse(courseData);
 
       // Check enrollment status
       const enrolled = await enrollmentService.isUserEnrolled(id);
@@ -51,10 +51,10 @@ const CourseDetail = () => {
     } catch (err) {
       console.error('Error fetching course data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load course');
-    } finally {
+      } finally {
       setLoading(false);
-    }
-  };
+      }
+    };
 
   useEffect(() => {
     fetchCourseAndEnrollment();
@@ -279,7 +279,7 @@ const CourseDetail = () => {
                                 </div>
                                 <div className="flex-grow">
                                   <div className="flex items-center justify-between">
-                                    <h5 className="font-medium text-gray-900">Lesson {lessonIndex + 1}: {lesson.title}</h5>
+                                  <h5 className="font-medium text-gray-900">Lesson {lessonIndex + 1}: {lesson.title}</h5>
                                     {isEnrolled && (
                                       <Button
                                         variant="ghost"
@@ -328,8 +328,8 @@ const CourseDetail = () => {
                   </Button>
                 ) : (
                   <Button onClick={enrollInCourse} disabled={isEnrolled} className="w-full md:w-auto">
-                    Enroll in this Course
-                  </Button>
+                  Enroll in this Course
+                </Button>
                 )
               ) : (
                 <Link to="/login">

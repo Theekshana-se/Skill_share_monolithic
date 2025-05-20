@@ -60,23 +60,23 @@ const CommentItem = ({ comment, onDelete, onUpdate }: CommentItemProps) => {
           size="sm"
           onClick={async () => {
             setIsLoading(true);
-            try {
+      try {
               await commentService.deleteComment(comment.id!, comment.postId);
-              onDelete(comment.id!);
-              toast({
-                title: "Comment deleted",
-                description: "Your comment has been successfully deleted."
-              });
+        onDelete(comment.id!);
+        toast({
+          title: "Comment deleted",
+          description: "Your comment has been successfully deleted."
+        });
             } catch (error: any) {
-              console.error('Error deleting comment:', error);
-              toast({
-                variant: "destructive",
-                title: "Error",
+        console.error('Error deleting comment:', error);
+        toast({
+          variant: "destructive",
+          title: "Error",
                 description: error.message || "Failed to delete comment. Please try again."
-              });
+        });
             } finally {
               setIsLoading(false);
-            }
+    }
           }}
         >
           Confirm
@@ -87,15 +87,15 @@ const CommentItem = ({ comment, onDelete, onUpdate }: CommentItemProps) => {
 
   return (
     <div className="flex gap-4 mb-6">
-      <Avatar className="h-10 w-10">
-        {comment.avatarUrl ? (
-          <img src={comment.avatarUrl} alt={comment.authorName || comment.userEmail} className="h-full w-full object-cover" />
-        ) : (
-          <div className="bg-purple-200 text-purple-600 h-full w-full flex items-center justify-center text-sm font-bold">
-            {(comment.authorName?.charAt(0) || comment.userEmail?.charAt(0) || '?').toUpperCase()}
-          </div>
-        )}
-      </Avatar>
+        <Avatar className="h-10 w-10">
+          {comment.avatarUrl ? (
+            <img src={comment.avatarUrl} alt={comment.authorName || comment.userEmail} className="h-full w-full object-cover" />
+          ) : (
+            <div className="bg-purple-200 text-purple-600 h-full w-full flex items-center justify-center text-sm font-bold">
+              {(comment.authorName?.charAt(0) || comment.userEmail?.charAt(0) || '?').toUpperCase()}
+            </div>
+          )}
+        </Avatar>
       <div className="flex-1">
         <div className="flex justify-between items-start">
           <div>
