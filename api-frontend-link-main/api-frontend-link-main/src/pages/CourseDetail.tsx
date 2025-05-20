@@ -66,8 +66,6 @@ const CourseDetail = () => {
       const newEnrollment = await enrollmentService.enrollInCourse(id);
       setEnrollment(newEnrollment);
       setIsEnrolled(true);
-      // Re-fetch course and enrollment status to update UI
-      await fetchCourseAndEnrollment();
       toast.toast({
         title: 'Success',
         description: 'Successfully enrolled in course',
@@ -326,10 +324,10 @@ const CourseDetail = () => {
               {isAuthenticated ? (
                 isEnrolled ? (
                   <Button disabled className="w-full md:w-auto">
-                    Already Enrolled
+                    Enrolled
                   </Button>
                 ) : (
-                  <Button onClick={enrollInCourse} className="w-full md:w-auto">
+                  <Button onClick={enrollInCourse} disabled={isEnrolled} className="w-full md:w-auto">
                     Enroll in this Course
                   </Button>
                 )
