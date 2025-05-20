@@ -53,7 +53,17 @@ export const courseService = {
 
   getCourseById: async (id: string): Promise<Course> => {
     try {
-      const response = await apiClient.get(`/courses/${id}`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+      
+      const response = await apiClient.get(`/courses/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
       return response.data;
     } catch (error) {
       console.error(`Error fetching course with ID ${id}:`, error);

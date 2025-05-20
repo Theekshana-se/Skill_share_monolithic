@@ -57,8 +57,22 @@ public class EnrollmentController {
         @PathVariable String courseId,
         Authentication authentication
     ) {
+        System.out.println("[DEBUG] ===== Enrollment Status Check =====");
+        System.out.println("[DEBUG] Course ID: " + courseId);
+        
+        if (authentication == null) {
+            System.out.println("[DEBUG] No authentication found in context");
+            return ResponseEntity.ok(false);
+        }
+        
         String userEmail = authentication.getName();
+        System.out.println("[DEBUG] User email from authentication: " + userEmail);
+        System.out.println("[DEBUG] Authentication details: " + authentication);
+        
         boolean isEnrolled = enrollmentService.isUserEnrolled(userEmail, courseId);
+        System.out.println("[DEBUG] Enrollment check result: " + isEnrolled);
+        System.out.println("[DEBUG] ===== End Enrollment Status Check =====");
+        
         return ResponseEntity.ok(isEnrolled);
     }
 } 

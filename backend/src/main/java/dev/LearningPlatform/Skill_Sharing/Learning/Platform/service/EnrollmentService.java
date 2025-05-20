@@ -45,7 +45,7 @@ public class EnrollmentService {
         }
 
         // Check if already enrolled
-        if (EnrollmentRepository.existsByUserEmailAndCourseId(userEmail, courseId)) {
+        if (enrollmentRepository.existsByUserEmailAndCourseId(userEmail, courseId)) {
             System.out.println("[DEBUG] User already enrolled: " + userEmail + " in course: " + courseId);
             throw new IllegalArgumentException("User is already enrolled in this course");
         }
@@ -100,7 +100,60 @@ public class EnrollmentService {
         return enrollmentRepository.save(enrollment);
     }
 
+    @Transactional(readOnly = true)
     public boolean isUserEnrolled(String userEmail, String courseId) {
-        return EnrollmentRepository.existsByUserEmailAndCourseId(userEmail, courseId);
+        System.out.println("[DEBUG] ===== Enrollment Service Check =====");
+        System.out.println("[DEBUG] Checking enrollment in database:");
+        System.out.println("[DEBUG] - User Email: " + userEmail);
+        System.out.println("[DEBUG] - Course ID: " + courseId);
+        
+        try {
+            // First check if the course exists
+            boolean courseExists = courseRepository.existsById(courseId);
+            System.out.println("[DEBUG] Course exists in database: " + courseExists);
+            
+            if (!courseExists) {
+                System.out.println("[DEBUG] Course not found in database");
+                return false;
+            }
+            
+            // Get all enrollments for this user for debugging
+            List<Enrollment> allUserEnrollments = enrollmentRepository.findByUserEmail(userEmail);
+            System.out.println("[DEBUG] All enrollments for user: " + allUserEnrollments);
+            
+            // Try direct query first
+            Optional<Enrollment> enrollmentOpt = enrollmentRepository.findByUserEmailAndCourseId(userEmail, courseId);
+            if (enrollmentOpt.isPresent()) {
+                Enrollment enrollment = enrollmentOpt.get();
+                System.out.println("[DEBUG] Found enrollment directly:");
+                System.out.println("[DEBUG] - ID: " + enrollment.getId());
+                System.out.println("[DEBUG] - User Email: " + enrollment.getUserEmail());
+                System.out.println("[DEBUG] - Course ID: " + enrollment.getCourseId());
+                System.out.println("[DEBUG] - Progress: " + enrollment.getProgress());
+                System.out.println("[DEBUG] - Completed Lessons: " + enrollment.getCompletedLessonIds());
+                return true;
+            }
+            
+            // If direct query fails, try exists query
+            boolean exists = enrollmentRepository.existsByUserEmailAndCourseId(userEmail, courseId);
+            System.out.println("[DEBUG] Enrollment exists check result: " + exists);
+            
+            if (!exists) {
+                System.out.println("[DEBUG] No enrollment found for user " + userEmail + " in course " + courseId);
+                // Double check with a raw query
+                System.out.println("[DEBUG] Double checking with raw query...");
+                List<Enrollment> rawQueryResults = enrollmentRepository.findAll().stream()
+                    .filter(e -> e.getUserEmail().equals(userEmail) && e.getCourseId().equals(courseId))
+                    .toList();
+                System.out.println("[DEBUG] Raw query results: " + rawQueryResults);
+            }
+            
+            System.out.println("[DEBUG] ===== End Enrollment Service Check =====");
+            return exists;
+        } catch (Exception e) {
+            System.out.println("[DEBUG] Error checking enrollment: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
 } 
