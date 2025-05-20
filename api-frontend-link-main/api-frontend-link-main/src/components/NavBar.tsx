@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User } from 'lucide-react';
+import { User, Home, BookOpen, Users, MessageCircle, Calendar, Info, Phone } from 'lucide-react';
 
 const NavBar = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -21,14 +20,18 @@ const NavBar = () => {
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
           <div className="flex items-center">
-            <Link to="/" className="text-2xl font-bold text-purple-600">SkillShare</Link>
+            <Link to="/" className="text-2xl font-bold text-purple-700">SkillShareX</Link>
           </div>
           
           <div className="hidden md:block">
             <div className="flex space-x-4">
-              <Link to="/" className="px-3 py-2 text-gray-700 hover:text-purple-600 transition-colors">Home</Link>
-              <Link to="/courses" className="px-3 py-2 text-gray-700 hover:text-purple-600 transition-colors">Courses</Link>
-              <Link to="/posts" className="px-3 py-2 text-gray-700 hover:text-purple-600 transition-colors">Posts</Link>
+              <Link to="/" className="px-3 py-2 text-gray-700 hover:text-purple-700 transition-colors flex items-center gap-2"><Home className="h-5 w-5" />Home</Link>
+              <Link to="/courses" className="px-3 py-2 text-gray-700 hover:text-purple-700 transition-colors flex items-center gap-2"><BookOpen className="h-5 w-5" />Courses</Link>
+              <Link to="/posts" className="px-3 py-2 text-gray-700 hover:text-purple-700 transition-colors flex items-center gap-2"><MessageCircle className="h-5 w-5" />Community</Link>
+              <Link to="/instructors" className="px-3 py-2 text-gray-700 hover:text-purple-700 transition-colors flex items-center gap-2"><Users className="h-5 w-5" />Instructors</Link>
+              <Link to="/events" className="px-3 py-2 text-gray-700 hover:text-purple-700 transition-colors flex items-center gap-2"><Calendar className="h-5 w-5" />Events</Link>
+              <Link to="/about" className="px-3 py-2 text-gray-700 hover:text-purple-700 transition-colors flex items-center gap-2"><Info className="h-5 w-5" />About</Link>
+              <Link to="/contact" className="px-3 py-2 text-gray-700 hover:text-purple-700 transition-colors flex items-center gap-2"><Phone className="h-5 w-5" />Contact</Link>
             </div>
           </div>
           

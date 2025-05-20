@@ -93,9 +93,9 @@ const Posts = () => {
         </div>
       ) : filteredPosts.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredPosts.map((post) => (
+          {filteredPosts.map((post, idx) => (
             <Link to={`/posts/${post.id}`} key={post.id} className="no-underline">
-              <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow">
+              <Card className="h-full overflow-hidden hover:scale-105 transition-transform duration-300 animate-fade-in" style={{ animationDelay: `${idx * 100}ms` }}>
                 <div className="h-48 bg-gray-200 overflow-hidden">
                   {renderPostImage(post)}
                 </div>
@@ -126,3 +126,8 @@ const Posts = () => {
 };
 
 export default Posts;
+
+<style>{`
+  .animate-fade-in { animation: fadeIn 1s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+`}</style>
