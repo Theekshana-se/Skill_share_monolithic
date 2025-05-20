@@ -33,11 +33,11 @@ const UserCourses = ({ courses, isOwnProfile, onDeleteCourse }: UserCoursesProps
 
   return (
     <Card>
-      <CardHeader className="flex justify-between items-center">
+      <CardHeader className="flex items-center justify-between">
         <CardTitle>My Courses</CardTitle>
         {isOwnProfile && (
           <Link to="/create-course">
-            <Button size="sm">Add Course</Button>
+            <Button size="sm" className="ml-auto">Add Course</Button>
           </Link>
         )}
       </CardHeader>

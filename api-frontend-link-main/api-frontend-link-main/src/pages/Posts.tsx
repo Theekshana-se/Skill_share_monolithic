@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Post, postService } from '@/api/postService';
@@ -34,6 +33,25 @@ const Posts = () => {
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     post.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const renderPostImage = (post: Post) => {
+    if (post.imageBase64) {
+      return (
+        <img 
+          src={`data:image/jpeg;base64,${post.imageBase64}`}
+          alt={post.title} 
+          className="w-full h-full object-cover"
+        />
+      );
+    }
+    return (
+      <img 
+        src="https://images.unsplash.com/photo-1498050108023-c5249f4df085" 
+        alt={post.title} 
+        className="w-full h-full object-cover"
+      />
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -79,11 +97,7 @@ const Posts = () => {
             <Link to={`/posts/${post.id}`} key={post.id} className="no-underline">
               <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="h-48 bg-gray-200 overflow-hidden">
-                  <img 
-                    src={post.imageUrl || "https://images.unsplash.com/photo-1498050108023-c5249f4df085"} 
-                    alt={post.title} 
-                    className="w-full h-full object-cover"
-                  />
+                  {renderPostImage(post)}
                 </div>
                 <CardContent className="p-4">
                   <CardTitle className="text-xl mb-2">{post.title}</CardTitle>

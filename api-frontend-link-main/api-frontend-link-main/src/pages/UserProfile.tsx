@@ -14,11 +14,14 @@ import UserCourses from '@/components/profile/UserCourses';
 import PostForm from '@/components/PostForm';
 import PostList from '@/components/PostList';
 import UserEnrolledCourses from '@/components/profile/UserEnrolledCourses';
+import UserPosts from '@/components/profile/UserPosts';
+import { Post, postService } from '@/api/postService';
 
 const UserProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [user, setUser] = useState<User | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [refreshPosts, setRefreshPosts] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { user: currentUser, isAuthenticated } = useAuth();
@@ -52,7 +55,7 @@ const UserProfile: React.FC = () => {
       return;
     }
 
-    const fetchUserAndCourses = async () => {
+    const fetchUserAndCoursesAndPosts = async () => {
       setIsLoading(true);
       try {
         console.log(`Fetching user with ID: ${id}`);
@@ -62,9 +65,13 @@ const UserProfile: React.FC = () => {
         // Fetch courses using the user's email as userId
         const userCourses = await courseService.getCoursesByUserId(userData.email);
         setCourses(userCourses);
+
+        // Fetch posts by user email
+        const userPosts = await postService.getPostsByUserEmail(userData.email);
+        setPosts(userPosts);
       } catch (error: any) {
-        console.error('Error fetching user or courses:', error);
-        const errorMessage = error.message || 'Failed to load user profile or courses';
+        console.error('Error fetching user, courses, or posts:', error);
+        const errorMessage = error.message || 'Failed to load user profile, courses, or posts';
         toast({
           variant: 'destructive',
           title: 'Error',
@@ -82,7 +89,7 @@ const UserProfile: React.FC = () => {
       }
     };
 
-    fetchUserAndCourses();
+    fetchUserAndCoursesAndPosts();
   }, [id, isAuthenticated, currentUser, navigate]);
 
   if (isLoading) {
@@ -236,12 +243,11 @@ const UserProfile: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="posts">
-            <div className="space-y-6">
-              {isOwnProfile && (
-                <PostForm onPostCreated={handlePostCreated} />
-              )}
-              <PostList userEmail={user.email} refreshTrigger={refreshPosts} />
-            </div>
+            <UserPosts
+              posts={posts}
+              isOwnProfile={isOwnProfile}
+              onDeletePost={(postId) => setPosts(posts.filter((post) => post.id !== postId))}
+            />
           </TabsContent>
 
           <TabsContent value="enrolled-courses">
