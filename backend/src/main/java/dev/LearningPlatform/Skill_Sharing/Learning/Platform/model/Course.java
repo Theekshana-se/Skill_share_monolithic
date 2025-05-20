@@ -34,6 +34,8 @@ public class Course {
 
     private List<Module> modules;
 
+    private String thumbnail; // Base64 encoded image string
+
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getCourseName() { return courseName; }
@@ -54,4 +56,23 @@ public class Course {
     public void setUserId(String userId) { this.userId = userId; }
     public List<Module> getModules() { return modules; }
     public void setModules(List<Module> modules) { this.modules = modules; }
+    public String getThumbnail() { return thumbnail; }
+    public void setThumbnail(String thumbnail) { this.thumbnail = thumbnail; }
+
+    @Override
+    public String toString() {
+        return "Course{" +
+                "id='" + id + '\'' +
+                ", courseName='" + courseName + '\'' +
+                ", courseLevel='" + courseLevel + '\'' +
+                ", institute='" + institute + '\'' +
+                ", startDate=" + startDate +
+                ", duration=" + duration +
+                ", courseType='" + courseType + '\'' +
+                ", progress=" + progress +
+                ", userId='" + userId + '\'' +
+                ", modules=" + modules +
+                ", thumbnail=" + (thumbnail != null ? "present" : "null") +
+                '}';
+    }
 }

@@ -65,6 +65,7 @@ const Courses = () => {
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="overflow-hidden">
               <div className="p-4">
+                <Skeleton className="h-48 w-full mb-4" />
                 <Skeleton className="h-6 w-2/3 mb-3" />
                 <Skeleton className="h-4 mb-2" />
                 <Skeleton className="h-4 w-4/5 mb-6" />
@@ -85,10 +86,20 @@ const Courses = () => {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredCourses.map((course) => (
             <Card key={course.id} className="h-full overflow-hidden hover:shadow-lg transition-shadow border border-gray-200">
+              <div className="relative h-48 w-full">
+                {course.thumbnail ? (
+                  <img
+                    src={course.thumbnail}
+                    alt={course.courseName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center">
+                    <BookOpen className="h-16 w-16 text-purple-400" />
+                  </div>
+                )}
+              </div>
               <CardContent className="p-6 bg-gradient-to-br from-white to-gray-50">
-                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-purple-100 text-purple-600 mb-4 shadow-md">
-                  <BookOpen className="h-8 w-8" />
-                </div>
                 <CardTitle className="text-xl font-semibold text-gray-800 mb-2">{course.courseName}</CardTitle>
                 <CardDescription className="mb-4 text-gray-600">
                   {course.institute} • {course.courseLevel}

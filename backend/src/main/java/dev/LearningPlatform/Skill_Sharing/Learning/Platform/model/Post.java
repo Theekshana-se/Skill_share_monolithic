@@ -22,7 +22,7 @@ public class Post {
     @NotBlank(message = "User email is required")
     private String userEmail;
 
-    private String imageUrl;
+    private String imageBase64;
     
     private LocalDateTime createdAt;
     
@@ -75,12 +75,12 @@ public class Post {
         this.userEmail = userEmail;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImageBase64() {
+        return imageBase64;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
     }
 
     public LocalDateTime getCreatedAt() {

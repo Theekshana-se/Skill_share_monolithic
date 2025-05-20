@@ -1,11 +1,14 @@
 package dev.LearningPlatform.Skill_Sharing.Learning.Platform.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dev.LearningPlatform.Skill_Sharing.Learning.Platform.repository.EnrollmentRepository;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Document(collection = "users")
 public class User {
@@ -32,6 +35,8 @@ public class User {
 
     // Roles for Spring Security
     private List<String> roles;
+
+    private Set<String> enrolledCourses = new HashSet<>();
 
     // Default constructor
     public User() {}
@@ -142,5 +147,30 @@ public class User {
 
     public void setRoles(List<String> roles) {
         this.roles = roles;
+    }
+
+    public Set<String> getEnrolledCourses() {
+        return enrolledCourses;
+    }
+
+    public void setEnrolledCourses(Set<String> enrolledCourses) {
+        this.enrolledCourses = enrolledCourses;
+    }
+
+    public void addEnrolledCourse(String courseId) {
+        if (this.enrolledCourses == null) {
+            this.enrolledCourses = new HashSet<>();
+        }
+        this.enrolledCourses.add(courseId);
+    }
+
+    public void removeEnrolledCourse(String courseId) {
+        if (this.enrolledCourses != null) {
+            this.enrolledCourses.remove(courseId);
+        }
+    }
+
+    public boolean isEnrolledInCourse(String courseId) {
+        return this.enrolledCourses != null && this.enrolledCourses.contains(courseId);
     }
 }

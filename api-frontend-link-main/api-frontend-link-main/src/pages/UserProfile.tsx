@@ -10,13 +10,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Edit, MapPin, Mail, User as UserIcon } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Course, courseService } from '@/api/courseService';
-import UserCourses from '@/components/profile/UserCourses'; // Import the new component
+import UserCourses from '@/components/profile/UserCourses';
+import PostForm from '@/components/PostForm';
+import PostList from '@/components/PostList';
 
 const UserProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [user, setUser] = useState<User | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
-  const [posts, setPosts] = useState<any[]>([]);
+  const [refreshPosts, setRefreshPosts] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { user: currentUser, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -59,10 +61,6 @@ const UserProfile: React.FC = () => {
         // Fetch courses using the user's email as userId
         const userCourses = await courseService.getCoursesByUserId(userData.email);
         setCourses(userCourses);
-
-        // Fetch posts (optional, remove if not implemented)
-        const userPosts = await userService.getUserPosts(id);
-        setPosts(userPosts);
       } catch (error: any) {
         console.error('Error fetching user or courses:', error);
         const errorMessage = error.message || 'Failed to load user profile or courses';
@@ -133,6 +131,10 @@ const UserProfile: React.FC = () => {
 
   const handleDeleteCourse = (courseId: string) => {
     setCourses(courses.filter((course) => course.id !== courseId));
+  };
+
+  const handlePostCreated = () => {
+    setRefreshPosts(prev => prev + 1);
   };
 
   return (
@@ -210,6 +212,7 @@ const UserProfile: React.FC = () => {
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="posts">Posts</TabsTrigger>
+            <TabsTrigger value="enrolled-courses">Enrolled Courses</TabsTrigger>
           </TabsList>
 
           <TabsContent value="about">
@@ -232,22 +235,12 @@ const UserProfile: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="posts">
-            <Card>
-              <CardHeader>
-                <CardTitle>My Posts</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {posts.length > 0 ? (
-                  <ul className="space-y-2">
-                    {posts.map((post) => (
-                      <li key={post.id}>{post.title}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-500">No posts yet.</p>
-                )}
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              {isOwnProfile && (
+                <PostForm onPostCreated={handlePostCreated} />
+              )}
+              <PostList userEmail={user.email} refreshTrigger={refreshPosts} />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

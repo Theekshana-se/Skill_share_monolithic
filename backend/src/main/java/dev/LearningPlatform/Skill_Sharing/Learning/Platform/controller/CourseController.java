@@ -27,7 +27,9 @@ public class CourseController {
     public ResponseEntity<Course> createCourse(@Valid @RequestBody Course course, Authentication auth) {
         String userEmail = auth.getName(); // Extract email from JWT
         course.setUserId(userEmail); // Set userId as email
+        System.out.println("Received course data: " + course); // Debug log
         Course savedCourse = courseService.createCourse(course);
+        System.out.println("Saved course data: " + savedCourse); // Debug log
         return ResponseEntity.ok(savedCourse);
     }
 
@@ -63,7 +65,9 @@ public class CourseController {
                 return ResponseEntity.status(403).body(null); // Unauthorized
             }
             updatedCourse.setUserId(userEmail); // Ensure userId remains email
+            System.out.println("Updating course with data: " + updatedCourse); // Debug log
             Course savedCourse = courseService.updateCourse(id, updatedCourse);
+            System.out.println("Updated course data: " + savedCourse); // Debug log
             return ResponseEntity.ok(savedCourse);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

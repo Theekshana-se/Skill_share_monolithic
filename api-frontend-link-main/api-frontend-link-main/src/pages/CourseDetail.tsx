@@ -4,41 +4,105 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, BookOpen, Calendar, Clock, School, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, BookOpen, Calendar, Clock, School, ChevronDown, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { Course, courseService } from '@/api/courseService';
-import { toast } from '@/components/ui/use-toast';
+import { Enrollment, enrollmentService } from '@/api/enrollmentService';
+import { toast, useToast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const CourseDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [course, setCourse] = useState<Course | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const { isAuthenticated } = useAuth();
+  const [isEnrolled, setIsEnrolled] = useState(false);
+  const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
+  const { isAuthenticated, user } = useAuth();
   const [openModules, setOpenModules] = useState<{ [key: string]: boolean }>({});
 
-  useEffect(() => {
+  const fetchCourseAndEnrollment = async () => {
     if (!id) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
 
-    const fetchCourse = async () => {
-      setIsLoading(true);
-      try {
-        const courseData = await courseService.getCourseById(id);
-        setCourse(courseData);
-      } catch (error) {
-        console.error('Error fetching course:', error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load course details"
-        });
-      } finally {
-        setIsLoading(false);
+      // Fetch course data
+      const courseData = await courseService.getCourseById(id);
+      if (!courseData) {
+        throw new Error('Course not found');
       }
-    };
+      setCourse(courseData);
 
-    fetchCourse();
+      // Check enrollment status
+      const enrolled = await enrollmentService.isUserEnrolled(id);
+      setIsEnrolled(enrolled);
+
+      // If enrolled, fetch enrollment details
+      if (enrolled) {
+        const enrollments = await enrollmentService.getUserEnrollments();
+        const userEnrollment = enrollments.find(e => e.courseId === id);
+        if (userEnrollment) {
+          setEnrollment(userEnrollment);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching course data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourseAndEnrollment();
   }, [id]);
+
+  const enrollInCourse = async () => {
+    if (!id) return;
+    try {
+      const newEnrollment = await enrollmentService.enrollInCourse(id);
+      setEnrollment(newEnrollment);
+      setIsEnrolled(true);
+      // Re-fetch course and enrollment status to update UI
+      await fetchCourseAndEnrollment();
+      toast.toast({
+        title: 'Success',
+        description: 'Successfully enrolled in course',
+      });
+    } catch (err) {
+      console.error('Error enrolling in course:', err);
+      toast.toast({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed to enroll in course',
+      });
+    }
+  };
+
+  const toggleLessonCompletion = async (lessonId: string) => {
+    if (!id || !isEnrolled) return;
+
+    try {
+      const updatedEnrollment = await enrollmentService.toggleLessonCompletion(id, lessonId);
+      setEnrollment(updatedEnrollment);
+      toast.toast({
+        title: 'Success',
+        description: 'Lesson completion status updated',
+      });
+    } catch (err) {
+      console.error('Error toggling lesson completion:', err);
+      toast.toast({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'Failed to update lesson completion',
+      });
+    }
+  };
+
+  const isLessonCompleted = (lessonId: string): boolean => {
+    return enrollment?.completedLessonIds.includes(lessonId) ?? false;
+  };
 
   const toggleModule = (moduleId: string) => {
     setOpenModules(prev => ({
@@ -47,28 +111,7 @@ const CourseDetail = () => {
     }));
   };
 
-  const enrollInCourse = async () => {
-    if (!course) return;
-    
-    try {
-      // In a real implementation, you'd call the API
-      // await enrollService.createEnrollment({ courseId: course.id });
-      
-      toast({
-        title: "Success",
-        description: "You have successfully enrolled in this course"
-      });
-    } catch (error) {
-      console.error('Error enrolling in course:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to enroll in course"
-      });
-    }
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -124,6 +167,19 @@ const CourseDetail = () => {
 
         <Card className="mb-8">
           <CardHeader>
+            <div className="relative h-64 w-full mb-6">
+              {course.thumbnail ? (
+                <img
+                  src={course.thumbnail}
+                  alt={course.courseName}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-purple-100 to-indigo-100 rounded-lg flex items-center justify-center">
+                  <BookOpen className="h-24 w-24 text-purple-400" />
+                </div>
+              )}
+            </div>
             <CardTitle>Course Overview</CardTitle>
             <CardDescription>Learn everything about {course.courseName}</CardDescription>
           </CardHeader>
@@ -170,8 +226,8 @@ const CourseDetail = () => {
             <div className="mb-6">
               <p className="text-sm text-gray-500 mb-2">Progress</p>
               <div className="flex items-center">
-                <Progress value={course.progress} className="h-2 flex-1 mr-4" />
-                <span className="text-sm font-medium">{course.progress}%</span>
+                <Progress value={enrollment?.progress || 0} className="h-2 flex-1 mr-4" />
+                <span className="text-sm font-medium">{enrollment?.progress || 0}%</span>
               </div>
             </div>
             
@@ -224,7 +280,23 @@ const CourseDetail = () => {
                                   {lessonIndex + 1}
                                 </div>
                                 <div className="flex-grow">
-                                  <h5 className="font-medium text-gray-900">Lesson {lessonIndex + 1}: {lesson.title}</h5>
+                                  <div className="flex items-center justify-between">
+                                    <h5 className="font-medium text-gray-900">Lesson {lessonIndex + 1}: {lesson.title}</h5>
+                                    {isEnrolled && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => toggleLessonCompletion(lesson.id!)}
+                                        className={`${
+                                          isLessonCompleted(lesson.id!) 
+                                            ? 'text-green-600 hover:text-green-700' 
+                                            : 'text-gray-400 hover:text-gray-600'
+                                        }`}
+                                      >
+                                        <CheckCircle2 className="h-5 w-5" />
+                                      </Button>
+                                    )}
+                                  </div>
                                   {lesson.content && (
                                     <p className="text-sm text-gray-500 mt-1">{lesson.content}</p>
                                   )}
@@ -252,9 +324,15 @@ const CourseDetail = () => {
             
             <div className="flex justify-center mt-8">
               {isAuthenticated ? (
-                <Button onClick={enrollInCourse} className="w-full md:w-auto">
-                  Enroll in this Course
-                </Button>
+                isEnrolled ? (
+                  <Button disabled className="w-full md:w-auto">
+                    Already Enrolled
+                  </Button>
+                ) : (
+                  <Button onClick={enrollInCourse} className="w-full md:w-auto">
+                    Enroll in this Course
+                  </Button>
+                )
               ) : (
                 <Link to="/login">
                   <Button variant="outline" className="w-full md:w-auto">

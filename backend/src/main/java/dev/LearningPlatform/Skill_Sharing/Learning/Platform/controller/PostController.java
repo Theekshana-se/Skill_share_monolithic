@@ -5,15 +5,16 @@ import dev.LearningPlatform.Skill_Sharing.Learning.Platform.service.PostService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import jakarta.validation.Valid;
-
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDateTime;
+import java.util.Base64;
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/posts")
+@CrossOrigin(origins = {"http://localhost:8081", "http://localhost:3000"}, allowCredentials = "true")
 public class PostController {
 
     private final PostService postService;
@@ -37,8 +38,15 @@ public class PostController {
             post.setUserEmail(userEmail);
             post.setCreatedAt(LocalDateTime.now());
             post.setUpdatedAt(LocalDateTime.now());
+
+            if (image != null && !image.isEmpty()) {
+                // Convert image to base64 without any prefix
+                byte[] imageBytes = image.getBytes();
+                String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+                post.setImageBase64(base64Image);
+            }
             
-            Post savedPost = postService.createPost(post, image);
+            Post savedPost = postService.createPost(post, null);
             return ResponseEntity.ok(savedPost);
         } catch (Exception e) {
             e.printStackTrace();
@@ -82,8 +90,15 @@ public class PostController {
             updatedPost.setDescription(description);
             updatedPost.setSlogan(slogan);
             updatedPost.setUpdatedAt(LocalDateTime.now());
+
+            if (image != null && !image.isEmpty()) {
+                // Convert image to base64 without any prefix
+                byte[] imageBytes = image.getBytes();
+                String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+                updatedPost.setImageBase64(base64Image);
+            }
             
-            Post savedPost = postService.updatePost(id, updatedPost, image);
+            Post savedPost = postService.updatePost(id, updatedPost, null);
             return ResponseEntity.ok(savedPost);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

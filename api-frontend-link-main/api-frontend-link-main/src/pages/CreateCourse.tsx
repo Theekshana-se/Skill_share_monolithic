@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from '@/components/ui/use-toast';
 import { Course, courseService } from '@/api/courseService';
 import { useAuth } from '@/contexts/AuthContext';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ImagePlus, X } from 'lucide-react';
 
 const lessonSchema = z.object({
   title: z.string().min(3, 'Lesson title must be at least 3 characters'),
@@ -33,11 +33,14 @@ const formSchema = z.object({
   duration: z.coerce.number().min(1, 'Duration must be at least 1 week'),
   courseType: z.string().min(1, 'Please select a course type'),
   modules: z.array(moduleSchema).min(1, 'At least one module is required'),
+  thumbnail: z.string().optional(),
 });
 
 const CreateCourse = () => {
   const navigate = useNavigate();
   const { user: currentUser, isAuthenticated } = useAuth();
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,6 +51,7 @@ const CreateCourse = () => {
       duration: 1,
       courseType: '',
       modules: [{ title: '', description: '', lessons: [{ title: '', content: '' }] }],
+      thumbnail: '',
     },
   });
 
@@ -55,6 +59,44 @@ const CreateCourse = () => {
     control: form.control,
     name: 'modules',
   });
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check file size (1MB limit)
+      if (file.size > 1024 * 1024) {
+        toast({
+          variant: 'destructive',
+          title: 'File too large',
+          description: 'Image size must be less than 1MB',
+        });
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          variant: 'destructive',
+          title: 'Invalid file type',
+          description: 'Please upload an image file',
+        });
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setPreviewImage(base64String);
+        form.setValue('thumbnail', base64String);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setPreviewImage(null);
+    form.setValue('thumbnail', '');
+  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!isAuthenticated) {
@@ -68,6 +110,7 @@ const CreateCourse = () => {
     }
 
     try {
+      console.log('Form values before submission:', values); // Debug log
       const courseData: Course = {
         courseName: values.courseName,
         courseLevel: values.courseLevel,
@@ -77,6 +120,7 @@ const CreateCourse = () => {
         courseType: values.courseType,
         progress: 0,
         userId: currentUser?.email,
+        thumbnail: values.thumbnail, // Ensure thumbnail is included
         modules: values.modules.map((module, mIndex) => ({
           id: `mod-${mIndex + 1}`,
           title: module.title,
@@ -88,6 +132,7 @@ const CreateCourse = () => {
           })),
         })),
       };
+      console.log('Course data being sent:', courseData); // Debug log
 
       await courseService.createCourse(courseData);
 
@@ -133,6 +178,45 @@ const CreateCourse = () => {
           <CardContent className="p-6 space-y-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Thumbnail Upload Section */}
+                <div className="space-y-4">
+                  <FormLabel className="text-gray-700">Course Thumbnail</FormLabel>
+                  <div className="flex flex-col items-center justify-center w-full">
+                    {previewImage ? (
+                      <div className="relative w-full max-w-md">
+                        <img
+                          src={previewImage}
+                          alt="Course thumbnail preview"
+                          className="w-full h-48 object-cover rounded-lg shadow-md"
+                        />
+                        <button
+                          type="button"
+                          onClick={removeImage}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <ImagePlus className="w-8 h-8 mb-3 text-gray-400" />
+                          <p className="mb-2 text-sm text-gray-500">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500">PNG, JPG or JPEG (MAX. 2MB)</p>
+                        </div>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                        />
+                      </label>
+                    )}
+                  </div>
+                </div>
+
                 {/* Course Fields */}
                 <FormField
                   control={form.control}

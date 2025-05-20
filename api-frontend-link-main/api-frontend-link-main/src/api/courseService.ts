@@ -24,6 +24,7 @@ export interface Course {
   progress: number;
   userId?: string;
   modules?: Module[]; // Optional array
+  thumbnail?: string; // Base64 encoded image string
 }
 
 export const courseService = {
@@ -67,6 +68,7 @@ export const courseService = {
       if (user && user.email) {
         course.userId = user.email; // Use email from auth
       }
+      console.log('Creating course with data:', course); // Debug log
       const response = await apiClient.post('/courses', course);
       return response.data;
     } catch (error) {
@@ -91,6 +93,7 @@ export const courseService = {
       if (user && user.email) {
         course.userId = user.email; // Use email from auth
       }
+      console.log('Updating course with data:', course); // Debug log
       const response = await apiClient.put(`/courses/${id}`, course);
       return response.data;
     } catch (error) {
