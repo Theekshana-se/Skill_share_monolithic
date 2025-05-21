@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { Edit, MapPin, Mail, User as UserIcon, BookOpen, MessageCircle, GraduationCap } from 'lucide-react';
+import { Edit, MapPin, Mail, User as UserIcon, BookOpen, MessageCircle, GraduationCap, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { Course, courseService } from '@/api/courseService';
 import UserCourses from '@/components/profile/UserCourses';
@@ -16,6 +16,7 @@ import PostList from '@/components/PostList';
 import UserEnrolledCourses from '@/components/profile/UserEnrolledCourses';
 import UserPosts from '@/components/profile/UserPosts';
 import { Post, postService } from '@/api/postService';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 const UserProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -145,6 +146,23 @@ const UserProfile: React.FC = () => {
     setRefreshPosts(prev => prev + 1);
   };
 
+  const handleDeleteProfile = async () => {
+    try {
+      await userService.deleteUser(id!);
+      toast({
+        title: "Profile Deleted",
+        description: "Your profile has been successfully deleted.",
+      });
+      navigate('/');
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to delete profile",
+      });
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -196,12 +214,37 @@ const UserProfile: React.FC = () => {
                 )}
               </div>
               {isOwnProfile && (
-                <Link to={`/profile/edit/${id}`}>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit Profile
-                  </Button>
-                </Link>
+                <div className="flex gap-2 mt-2">
+                  <Link to={`/profile/edit/${id}`}>
+                    <Button variant="outline" size="sm">
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit Profile
+                    </Button>
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" size="sm">
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete Profile
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete your profile
+                          and all associated data including courses, posts, and comments.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteProfile} className="bg-red-600 hover:bg-red-700">
+                          Delete Profile
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               )}
             </div>
           </div>
