@@ -15,7 +15,8 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/posts")
 @CrossOrigin(origins = {"http://localhost:8081", "http://localhost:3000"}, allowCredentials = "true")
-public class PostController {
+public class
+PostController {
 
     private final PostService postService;
 
@@ -40,12 +41,11 @@ public class PostController {
             post.setUpdatedAt(LocalDateTime.now());
 
             if (image != null && !image.isEmpty()) {
-                // Convert image to base64 without any prefix
                 byte[] imageBytes = image.getBytes();
                 String base64Image = Base64.getEncoder().encodeToString(imageBytes);
                 post.setImageBase64(base64Image);
             }
-            
+
             Post savedPost = postService.createPost(post, null);
             return ResponseEntity.ok(savedPost);
         } catch (Exception e) {
@@ -92,12 +92,11 @@ public class PostController {
             updatedPost.setUpdatedAt(LocalDateTime.now());
 
             if (image != null && !image.isEmpty()) {
-                // Convert image to base64 without any prefix
                 byte[] imageBytes = image.getBytes();
                 String base64Image = Base64.getEncoder().encodeToString(imageBytes);
                 updatedPost.setImageBase64(base64Image);
             }
-            
+
             Post savedPost = postService.updatePost(id, updatedPost, null);
             return ResponseEntity.ok(savedPost);
         } catch (IllegalArgumentException e) {
@@ -114,6 +113,32 @@ public class PostController {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    // New endpoint for liking a post
+    @PostMapping("/{id}/like")
+    public ResponseEntity<Post> likePost(@PathVariable String id) {
+        try {
+            Post updatedPost = postService.likePost(id);
+            return ResponseEntity.ok(updatedPost);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // New endpoint for disliking a post
+    @PostMapping("/{id}/dislike")
+    public ResponseEntity<Post> dislikePost(@PathVariable String id) {
+        try {
+            Post updatedPost = postService.dislikePost(id);
+            return ResponseEntity.ok(updatedPost);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
         }
     }
 }

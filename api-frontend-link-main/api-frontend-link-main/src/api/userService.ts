@@ -105,12 +105,12 @@ export const userService = {
     }
   },
 
-  // getUserPosts: async (userId: string): Promise<Post[]> => {
-  //   try {
-  //     return await postService.getPostsByUserId(userId);
-  //   } catch (error: any) {
-  //     console.error(`Error fetching posts for user ${userId}:`, error);
-  //     return []; // Return empty array on error
-  //   }
-  // },
+   /*getUserPosts: async (userId: string): Promise<Post[]> => {
+     try {
+       return await postService.getPostsByUserId(userId);
+     } catch (error: any) {
+       console.error(`Error fetching posts for user ${userId}:`, error);
+       return []; // Return empty array on error
+     }
+   },*/
 };
