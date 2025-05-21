@@ -65,27 +65,42 @@ const UserEnrolledCourses = () => {
   }, []);
 
   const handleUnenroll = async (courseId: string) => {
-    try {
-      setRefreshing(true);
-      console.log('[DEBUG] Starting unenroll process for course:', courseId);
-      await enrollmentService.unenrollFromCourse(courseId);
-      console.log('[DEBUG] Successfully unenrolled from course:', courseId);
-      toast({
-        title: "Success",
-        description: "Successfully unenrolled from course",
-      });
-      // Refresh the enrolled courses list
-      await fetchEnrolledCourses();
-    } catch (error) {
-      console.error('[DEBUG] Error unenrolling from course:', error);
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to unenroll from course",
-        variant: "destructive",
-      });
-    } finally {
-      setRefreshing(false);
-    }
+    toast({
+      title: "Unenroll from Course",
+      description: "Are you sure you want to unenroll from this course? You will lose access to all course materials and progress.",
+      action: (
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={async () => {
+            try {
+              setRefreshing(true);
+              console.log('[DEBUG] Starting unenroll process for course:', courseId);
+              await enrollmentService.unenrollFromCourse(courseId);
+              console.log('[DEBUG] Successfully unenrolled from course:', courseId);
+              toast({
+                title: "Successfully Unenrolled",
+                description: "You have been unenrolled from the course.",
+                className: "bg-green-50 border-green-200",
+              });
+              // Refresh the enrolled courses list
+              await fetchEnrolledCourses();
+            } catch (error) {
+              console.error('[DEBUG] Error unenrolling from course:', error);
+              toast({
+                variant: "destructive",
+                title: "Error",
+                description: error instanceof Error ? error.message : "Failed to unenroll from course",
+              });
+            } finally {
+              setRefreshing(false);
+            }
+          }}
+        >
+          Confirm Unenroll
+        </Button>
+      ),
+    });
   };
 
   const handleRefresh = () => {
@@ -187,11 +202,7 @@ const UserEnrolledCourses = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => {
-                            if (window.confirm("Are you sure you want to unenroll from this course?")) {
-                              handleUnenroll(course.id!);
-                            }
-                          }}
+                          onClick={() => handleUnenroll(course.id!)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <X className="h-4 w-4 mr-1" />

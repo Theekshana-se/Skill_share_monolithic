@@ -19,21 +19,36 @@ interface UserPostsProps {
 
 const UserPosts = ({ posts, isOwnProfile, onDeletePost }: UserPostsProps) => {
   const handleDeletePost = async (postId: string) => {
-    try {
-      await postService.deletePost(postId);
-      onDeletePost(postId);
-      toast({
-        title: "Post deleted",
-        description: "Your post has been successfully deleted."
-      });
-    } catch (error) {
-      console.error('Error deleting post:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete post. Please try again."
-      });
-    }
+    toast({
+      title: "Delete Post",
+      description: "Are you sure you want to delete this post? This action cannot be undone.",
+      action: (
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={async () => {
+            try {
+              await postService.deletePost(postId);
+              onDeletePost(postId);
+              toast({
+                title: "Post deleted",
+                description: "Your post has been successfully deleted.",
+                className: "bg-green-50 border-green-200",
+              });
+            } catch (error) {
+              console.error('Error deleting post:', error);
+              toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to delete post. Please try again.",
+              });
+            }
+          }}
+        >
+          Confirm Delete
+        </Button>
+      ),
+    });
   };
 
   return (
