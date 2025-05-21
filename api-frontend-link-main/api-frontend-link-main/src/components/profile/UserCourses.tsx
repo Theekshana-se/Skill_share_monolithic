@@ -14,21 +14,36 @@ interface UserCoursesProps {
 
 const UserCourses = ({ courses, isOwnProfile, onDeleteCourse }: UserCoursesProps) => {
   const handleDeleteCourse = async (courseId: string) => {
-    try {
-      await courseService.deleteCourse(courseId);
-      onDeleteCourse(courseId);
-      toast({
-        title: "Course deleted",
-        description: "Your course has been successfully deleted."
-      });
-    } catch (error) {
-      console.error('Error deleting course:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete course. Please try again."
-      });
-    }
+    toast({
+      title: "Delete Course",
+      description: "Are you sure you want to delete this course? This action cannot be undone and all enrolled students will lose access.",
+      action: (
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={async () => {
+            try {
+              await courseService.deleteCourse(courseId);
+              onDeleteCourse(courseId);
+              toast({
+                title: "Course deleted",
+                description: "Your course has been successfully deleted.",
+                className: "bg-green-50 border-green-200",
+              });
+            } catch (error) {
+              console.error('Error deleting course:', error);
+              toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to delete course. Please try again.",
+              });
+            }
+          }}
+        >
+          Confirm Delete
+        </Button>
+      ),
+    });
   };
 
   return (
@@ -93,6 +108,7 @@ const UserCourses = ({ courses, isOwnProfile, onDeleteCourse }: UserCoursesProps
                           variant="outline" 
                           size="sm" 
                           onClick={() => handleDeleteCourse(course.id!)}
+                          className="hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                           <span className="sr-only">Delete</span>

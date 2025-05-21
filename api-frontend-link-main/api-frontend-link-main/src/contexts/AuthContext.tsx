@@ -11,6 +11,7 @@ interface AuthContextType {
   googleLogin: () => void;
   setUser: (user: User) => void;
   loginWithToken: (token: string) => void;
+  register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -101,6 +102,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const register = async (email: string, password: string, firstName: string, lastName: string) => {
+    try {
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('password', password);
+      formData.append('firstName', firstName);
+      formData.append('lastName', lastName);
+
+      const response = await authService.register(formData);
+      setUserAndPersist(response.user);
+      setIsAuthenticated(true);
+      toast({
+        title: 'Registration Successful',
+        description: 'Welcome to our platform!',
+      });
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      toast({
+        title: 'Registration Failed',
+        description: typeof error === 'string' ? error : 'Could not create your account. Please try again.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  };
+
   const value = {
     isAuthenticated,
     user,
@@ -108,7 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     googleLogin,
     setUser: setUserAndPersist,
-    loginWithToken
+    loginWithToken,
+    register
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
