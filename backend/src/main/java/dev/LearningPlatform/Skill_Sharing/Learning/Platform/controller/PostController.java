@@ -15,7 +15,8 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/posts")
 @CrossOrigin(origins = {"http://localhost:8081", "http://localhost:3000"}, allowCredentials = "true")
-public class PostController {
+public class
+PostController {
 
     private final PostService postService;
 

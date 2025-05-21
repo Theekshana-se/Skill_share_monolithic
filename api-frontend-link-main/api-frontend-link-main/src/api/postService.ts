@@ -1,4 +1,20 @@
-import apiClient from './apiClient';
+//import apiClient from './apiClient';
+import axios from 'axios';
+
+const apiClient = axios.create({
+  baseURL: 'http://localhost:8080/api',
+  timeout: 30000, // Temporary increase to avoid timeouts
+  headers: { 'Content-Type': 'application/json' }
+});
+
+// Add JWT token to requests
+apiClient.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 export interface Post {
   id?: string;
@@ -12,25 +28,26 @@ export interface Post {
   updatedAt?: string;
   likes?: number;
   dislikes?: number;
+  userInteraction: string | null; // "LIKE", "DISLIKE", or null
 }
 
 export const postService = {
-  getAllPosts: async (page: number = 0, size: number = 10): Promise<Post[]> => {
-  try {
-    const response = await apiClient.get(`/posts?page=${page}&size=${size}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching posts:', error);
-    throw error;
-  }
-},
-  
   getPostById: async (id: string): Promise<Post> => {
     try {
       const response = await apiClient.get(`/posts/${id}`);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Error fetching post ${id}:`, error);
+      throw error.response?.data || error;
+    }
+  },
+
+  getAllPosts: async (page: number = 0, size: number = 10): Promise<Post[]> => {
+    try {
+      const response = await apiClient.get(`/posts?page=${page}&size=${size}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching posts:', error);
       throw error;
     }
   },
@@ -80,35 +97,35 @@ export const postService = {
   },
   
   // Get posts by user email
-  getPostsByUserEmail: async (email: string): Promise<Post[]> => {
+  getPostsByUserEmail: async (email: string, page: number = 0, size: number = 10): Promise<Post[]> => {
     try {
-      const response = await apiClient.get(`/posts?userEmail=${email}`);
+      const response = await apiClient.get(`/posts?userEmail=${email}&page=${page}&size=${size}`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching posts for user ${email}:`, error);
+      console.error(`Error fetching posts for email ${email}:`, error);
       throw error;
     }
   },
 
   // Like a post
-  likePost: async (id: string): Promise<Post> => {
+  likePost: async (postId: string): Promise<Post> => {
     try {
-      const response = await apiClient.post(`/posts/${id}/like`);
+      const response = await apiClient.post(`/posts/${postId}/like`);
       return response.data;
-    } catch (error) {
-      console.error(`Error liking post ${id}:`, error);
-      throw error;
+    } catch (error: any) {
+      console.error(`Error liking post ${postId}:`, error);
+      throw error.response?.data || error;
     }
   },
 
   // Dislike a post
-  dislikePost: async (id: string): Promise<Post> => {
+  dislikePost: async (postId: string): Promise<Post> => {
     try {
-      const response = await apiClient.post(`/posts/${id}/dislike`);
+      const response = await apiClient.post(`/posts/${postId}/dislike`);
       return response.data;
-    } catch (error) {
-      console.error(`Error disliking post ${id}:`, error);
-      throw error;
+    } catch (error: any) {
+      console.error(`Error disliking post ${postId}:`, error);
+      throw error.response?.data || error;
     }
-  }
+  },
 };
