@@ -1,4 +1,9 @@
 import apiClient from './apiClient';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:8080/api';
+const MAX_RETRIES = 3;
+const TIMEOUT = 30000; // 30 seconds
 
 export interface Lesson {
   id?: string; // Optional for new lessons
@@ -52,13 +57,39 @@ export const courseService = {
   },
 
   getCourseById: async (id: string): Promise<Course> => {
-    try {
-      const response = await apiClient.get(`/courses/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching course with ID ${id}:`, error);
-      throw error;
+    let retries = 0;
+    
+    while (retries < MAX_RETRIES) {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Authentication required');
+        }
+        
+        const response = await axios.get(`${API_URL}/courses/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: TIMEOUT
+        });
+        
+        return response.data;
+      } catch (error) {
+        retries++;
+        console.error(`Attempt ${retries} failed to fetch course with ID ${id}:`, error);
+        
+        if (retries === MAX_RETRIES) {
+          console.error(`All ${MAX_RETRIES} attempts failed to fetch course with ID ${id}`);
+          throw new Error('Failed to fetch course details after multiple attempts');
+        }
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retries) * 1000));
+      }
     }
+    
+    throw new Error('Failed to fetch course details');
   },
 
   createCourse: async (course: Course): Promise<Course> => {

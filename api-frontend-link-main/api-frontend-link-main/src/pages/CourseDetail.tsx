@@ -21,49 +21,105 @@ const CourseDetail = () => {
   const toast = useToast();
   const { isAuthenticated, user } = useAuth();
   const [openModules, setOpenModules] = useState<{ [key: string]: boolean }>({});
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchCourseAndEnrollment = async () => {
-    if (!id) return;
+    if (!id || !user) return;
 
-      try {
+    try {
       setLoading(true);
       setError(null);
+      console.log('Starting fetchCourseAndEnrollment for course:', id);
 
       // Fetch course data
-        const courseData = await courseService.getCourseById(id);
+      console.log('Fetching course data...');
+      const courseData = await courseService.getCourseById(id);
+      console.log('Course data received:', courseData);
+      
       if (!courseData) {
         throw new Error('Course not found');
       }
-        setCourse(courseData);
+      setCourse(courseData);
 
       // Check enrollment status
-      const enrolled = await enrollmentService.isUserEnrolled(id);
-      setIsEnrolled(enrolled);
+      try {
+        console.log('Checking enrollment status...');
+        const enrolled = await enrollmentService.isUserEnrolled(id);
+        console.log('Enrollment status:', enrolled);
+        setIsEnrolled(enrolled);
 
-      // If enrolled, fetch enrollment details
-      if (enrolled) {
-        const enrollments = await enrollmentService.getUserEnrollments();
-        const userEnrollment = enrollments.find(e => e.courseId === id);
-        if (userEnrollment) {
-          setEnrollment(userEnrollment);
+        // If enrolled, fetch enrollment details
+        if (enrolled) {
+          console.log('Fetching enrollment details...');
+          const enrollments = await enrollmentService.getUserEnrollments();
+          console.log('All enrollments:', enrollments);
+          const userEnrollment = enrollments.find(e => e.courseId === id);
+          console.log('User enrollment for this course:', userEnrollment);
+          if (userEnrollment) {
+            setEnrollment(userEnrollment);
+          }
         }
+      } catch (err) {
+        console.error('Error checking enrollment status:', err);
+        setIsEnrolled(false);
+        setEnrollment(null);
       }
     } catch (err) {
       console.error('Error fetching course data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load course');
-      } finally {
+    } finally {
       setLoading(false);
-      }
-    };
+      setIsInitialLoad(false);
+    }
+  };
 
   useEffect(() => {
-    fetchCourseAndEnrollment();
+    console.log('CourseDetail useEffect triggered');
+    console.log('isAuthenticated:', isAuthenticated);
+    console.log('user:', user);
+    
+    // Only proceed if we have both authentication and user data
+    if (isAuthenticated && user) {
+      fetchCourseAndEnrollment();
+    } else if (isAuthenticated && !user) {
+      // If authenticated but no user data, wait briefly for user data to load
+      const timer = setTimeout(() => {
+        if (user) {
+          fetchCourseAndEnrollment();
+        } else {
+          setLoading(false);
+          setError('Unable to load user data. Please try refreshing the page.');
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    } else {
+      setLoading(false);
+      setError('Please log in to view course details');
+    }
+  }, [id, isAuthenticated, user]);
+
+  // Reset state when course ID changes
+  useEffect(() => {
+    setIsInitialLoad(true);
+    setEnrollment(null);
+    setIsEnrolled(false);
+    setError(null);
   }, [id]);
 
   const enrollInCourse = async () => {
-    if (!id) return;
+    if (!id || !isAuthenticated || !user) {
+      toast.toast({
+        title: 'Error',
+        description: 'Please log in to enroll in courses',
+      });
+      return;
+    }
+
     try {
+      console.log('Enrolling in course:', id);
       const newEnrollment = await enrollmentService.enrollInCourse(id);
+      console.log('Enrollment successful:', newEnrollment);
       setEnrollment(newEnrollment);
       setIsEnrolled(true);
       toast.toast({
@@ -80,10 +136,18 @@ const CourseDetail = () => {
   };
 
   const toggleLessonCompletion = async (lessonId: string) => {
-    if (!id || !isEnrolled) return;
+    if (!id || !isEnrolled || !isAuthenticated || !user) {
+      toast.toast({
+        title: 'Error',
+        description: 'Please log in and enroll in the course to track progress',
+      });
+      return;
+    }
 
     try {
+      console.log('Toggling lesson completion:', { courseId: id, lessonId });
       const updatedEnrollment = await enrollmentService.toggleLessonCompletion(id, lessonId);
+      console.log('Lesson completion updated:', updatedEnrollment);
       setEnrollment(updatedEnrollment);
       toast.toast({
         title: 'Success',
@@ -323,13 +387,14 @@ const CourseDetail = () => {
             <div className="flex justify-center mt-8">
               {isAuthenticated ? (
                 isEnrolled ? (
-                  <Button disabled className="w-full md:w-auto">
-                    Enrolled
+                  <Button disabled className="w-full md:w-auto bg-green-100 text-green-700 hover:bg-green-100 cursor-not-allowed">
+                    <CheckCircle2 className="mr-2 h-5 w-5" />
+                    Already Enrolled
                   </Button>
                 ) : (
-                  <Button onClick={enrollInCourse} disabled={isEnrolled} className="w-full md:w-auto">
-                  Enroll in this Course
-                </Button>
+                  <Button onClick={enrollInCourse} className="w-full md:w-auto">
+                    Enroll in this Course
+                  </Button>
                 )
               ) : (
                 <Link to="/login">
