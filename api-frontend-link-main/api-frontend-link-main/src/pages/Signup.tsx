@@ -5,278 +5,267 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
-import { userService } from '@/api/userService';
+import { authService, RegisterCredentials } from '@/api/authService';
+import { useAuth } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
 
-const Signup = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    username: '',
+const Signup: React.FC = () => {
+  const [formData, setFormData] = useState<RegisterCredentials>({
     email: '',
     password: '',
     confirmPassword: '',
-    age: 18,
-    location: '',
-    bio: '',
-    profilePhoto: null,
-    coverPhoto: null
+    firstName: '',
+    lastName: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { register, googleLogin } = useAuth();
 
-  const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'file' ? files[0] || null : type === 'number' ? parseInt(value) || 18 : value
-    }));
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     if (formData.password !== formData.confirmPassword) {
       toast({
-        variant: "destructive",
-        title: "Passwords don't match",
-        description: "Please make sure your passwords match",
+        variant: 'destructive',
+        title: 'Password Mismatch',
+        description: 'Passwords do not match. Please try again.',
       });
+      setIsLoading(false);
       return;
     }
-
-    if (formData.profilePhoto && !['image/jpeg', 'image/png'].includes(formData.profilePhoto.type)) {
-      toast({
-        variant: "destructive",
-        title: "Invalid profile photo",
-        description: "Please upload a JPEG or PNG image",
-      });
-      return;
-    }
-    if (formData.coverPhoto && !['image/jpeg', 'image/png'].includes(formData.coverPhoto.type)) {
-      toast({
-        variant: "destructive",
-        title: "Invalid cover photo",
-        description: "Please upload a JPEG or PNG image",
-      });
-      return;
-    }
-    if (formData.profilePhoto && formData.profilePhoto.size > 5 * 1024 * 1024) {
-      toast({
-        variant: "destructive",
-        title: "Profile photo too large",
-        description: "Please upload an image smaller than 5MB",
-      });
-      return;
-    }
-    if (formData.coverPhoto && formData.coverPhoto.size > 5 * 1024 * 1024) {
-      toast({
-        variant: "destructive",
-        title: "Cover photo too large",
-        description: "Please upload an image smaller than 5MB",
-      });
-      return;
-    }
-
-    setIsLoading(true);
 
     try {
-      const data = new FormData();
-      data.append('name', formData.name);
-      data.append('username', formData.username);
-      data.append('email', formData.email);
-      data.append('password', formData.password);
-      data.append('age', formData.age.toString());
-      if (formData.location) data.append('location', formData.location);
-      if (formData.bio) data.append('bio', formData.bio);
-      if (formData.profilePhoto) data.append('profilePhoto', formData.profilePhoto);
-      if (formData.coverPhoto) data.append('coverPhoto', formData.coverPhoto);
-
-      await userService.createUser(data);
-
+      await register(formData.email, formData.password, formData.firstName, formData.lastName);
       toast({
-        title: "Account created",
-        description: "Your account has been created successfully. Please log in.",
+        title: 'Registration Successful',
+        description: 'Your account has been created successfully.',
       });
-
-      navigate('/login');
-    } catch (error) {
-      console.error('Signup error:', error);
+      navigate('/');
+    } catch (error: any) {
+      console.error('Registration error:', error.message, error);
       toast({
-        variant: "destructive",
-        title: "Account creation failed",
-        description: error.response?.data || "There was an error creating your account. Please try again.",
+        variant: 'destructive',
+        title: 'Registration Failed',
+        description: error.message === 'Request failed with status code 500'
+          ? 'Server error. Please try again later or contact support.'
+          : error.message || 'Please check your information and try again.',
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleGoogleLogin = () => {
+    googleLogin();
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8 min-h-screen bg-gradient-to-br from-purple-50 to-indigo-50">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6 text-center">Join Our Community</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-100 via-indigo-50 to-blue-100 p-4">
+      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-md w-full relative z-10"
+      >
+        <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="text-4xl font-bold text-gray-900 mb-6 text-center"
+        >
+          Create Account
+        </motion.h1>
 
-        <Card className="border-0 shadow-lg bg-white/90 backdrop-blur-md">
-          <CardHeader className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-t-lg">
-            <CardTitle className="text-2xl font-semibold text-gray-800">Create an Account</CardTitle>
-            <CardDescription className="text-gray-600">
-              Fill in your details to get started
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-6 space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-gray-700">Full Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="John Doe"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    className="border-gray-300 focus:border-purple-500"
-                  />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card className="border-0 shadow-xl bg-white/90 backdrop-blur-md">
+            <CardHeader className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-t-lg">
+              <CardTitle className="text-2xl font-semibold text-gray-800">Sign Up</CardTitle>
+              <CardDescription className="text-gray-600">
+                Create your account to get started
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.4 }}
+                    className="space-y-2"
+                  >
+                    <Label htmlFor="firstName" className="text-gray-700">First Name</Label>
+                    <Input
+                      id="firstName"
+                      name="firstName"
+                      type="text"
+                      placeholder="Enter your first name"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      required
+                      className="border-gray-300 focus:border-purple-500 transition-colors duration-200"
+                    />
+                  </motion.div>
+                  <motion.div 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.5 }}
+                    className="space-y-2"
+                  >
+                    <Label htmlFor="lastName" className="text-gray-700">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      name="lastName"
+                      type="text"
+                      placeholder="Enter your last name"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      required
+                      className="border-gray-300 focus:border-purple-500 transition-colors duration-200"
+                    />
+                  </motion.div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="username" className="text-gray-700">Username</Label>
-                  <Input
-                    id="username"
-                    name="username"
-                    placeholder="johndoe"
-                    value={formData.username}
-                    onChange={handleChange}
-                    required
-                    className="border-gray-300 focus:border-purple-500"
-                  />
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                  className="space-y-2"
+                >
                   <Label htmlFor="email" className="text-gray-700">Email</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="Enter your email"
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="border-gray-300 focus:border-purple-500"
+                    className="border-gray-300 focus:border-purple-500 transition-colors duration-200"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="age" className="text-gray-700">Age</Label>
-                  <Input
-                    id="age"
-                    name="age"
-                    type="number"
-                    min="13"
-                    value={formData.age}
-                    onChange={handleChange}
-                    required
-                    className="border-gray-300 focus:border-purple-500"
-                  />
-                </div>
-              </div>
+                </motion.div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.7 }}
+                  className="space-y-2"
+                >
                   <Label htmlFor="password" className="text-gray-700">Password</Label>
                   <Input
                     id="password"
                     name="password"
                     type="password"
+                    placeholder="Create a password"
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="border-gray-300 focus:border-purple-500"
+                    className="border-gray-300 focus:border-purple-500 transition-colors duration-200"
                   />
-                </div>
-                <div className="space-y-2">
+                </motion.div>
+
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.8 }}
+                  className="space-y-2"
+                >
                   <Label htmlFor="confirmPassword" className="text-gray-700">Confirm Password</Label>
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
                     type="password"
+                    placeholder="Confirm your password"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
-                    className="border-gray-300 focus:border-purple-500"
+                    className="border-gray-300 focus:border-purple-500 transition-colors duration-200"
                   />
-                </div>
-              </div>
+                </motion.div>
 
-              <div className="space-y-2">
-                <Label htmlFor="location" className="text-gray-700">Location</Label>
-                <Input
-                  id="location"
-                  name="location"
-                  placeholder="New York"
-                  value={formData.location}
-                  onChange={handleChange}
-                  className="border-gray-300 focus:border-purple-500"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bio" className="text-gray-700">Bio</Label>
-                <Input
-                  id="bio"
-                  name="bio"
-                  placeholder="Tell us about yourself"
-                  value={formData.bio}
-                  onChange={handleChange}
-                  className="border-gray-300 focus:border-purple-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="profilePhoto" className="text-gray-700">Profile Photo</Label>
-                  <Input
-                    id="profilePhoto"
-                    name="profilePhoto"
-                    type="file"
-                    accept="image/jpeg,image/png"
-                    onChange={handleChange}
-                    className="border-gray-300 focus:border-purple-500"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="coverPhoto" className="text-gray-700">Cover Photo</Label>
-                  <Input
-                    id="coverPhoto"
-                    name="coverPhoto"
-                    type="file"
-                    accept="image/jpeg,image/png"
-                    onChange={handleChange}
-                    className="border-gray-300 focus:border-purple-500"
-                  />
-                </div>
-              </div>
-
-              <Button 
-                type="submit" 
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200"
-                disabled={isLoading}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.9 }}
+                  className="space-y-4"
+                >
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading}
+                    className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02]"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Creating account...
+                      </div>
+                    ) : 'Create Account'}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleGoogleLogin}
+                    className="w-full flex items-center justify-center gap-2 border-2 border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all duration-200 transform hover:scale-[1.02]"
+                  >
+                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                      <path
+                        fill="currentColor"
+                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      />
+                      <path
+                        fill="currentColor"
+                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      />
+                      <path
+                        fill="currentColor"
+                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      />
+                      <path
+                        fill="currentColor"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      />
+                    </svg>
+                    Continue with Google
+                  </Button>
+                </motion.div>
+              </form>
+            </CardContent>
+            <CardFooter className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-b-lg">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 1 }}
+                className="w-full text-center"
               >
-                {isLoading ? 'Creating account...' : 'Sign Up'}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="bg-gradient-to-r from-purple-50 to-indigo-50 p-6 rounded-b-lg">
-            <div className="w-full text-center">
-              <p className="text-gray-600">
-                Already have an account?{' '}
-                <Link to="/login" className="text-purple-600 hover:text-purple-700 font-medium hover:underline">
-                  Log in here
-                </Link>
-              </p>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
+                <p className="text-gray-600">
+                  Already have an account?{' '}
+                  <Link to="/login" className="text-purple-600 hover:text-purple-700 font-medium hover:underline transition-colors duration-200">
+                    Login here
+                  </Link>
+                </p>
+              </motion.div>
+            </CardFooter>
+          </Card>
+        </motion.div>
+      </motion.div>
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .bg-grid-pattern {
+            background-image: linear-gradient(to right, #6366f1 1px, transparent 1px),
+              linear-gradient(to bottom, #6366f1 1px, transparent 1px);
+            background-size: 24px 24px;
+          }
+        `
+      }} />
     </div>
   );
 };

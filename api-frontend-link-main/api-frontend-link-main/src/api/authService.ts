@@ -6,6 +6,14 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegisterCredentials {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  firstName: string;
+  lastName: string;
+}
+
 export interface AuthResponse {
   token: string;
   user: User;
@@ -64,12 +72,32 @@ export const authService = {
 
   register: async (userData: FormData): Promise<AuthResponse> => {
     try {
-      const response = await apiClient.post('/users', userData, {
+      // Create a new FormData object with the required fields
+      const formData = new FormData();
+      formData.append('name', `${userData.get('firstName')} ${userData.get('lastName')}`);
+      formData.append('username', userData.get('email') as string);
+      formData.append('email', userData.get('email') as string);
+      formData.append('password', userData.get('password') as string);
+      formData.append('age', '18'); // Default age
+      formData.append('location', '');
+      formData.append('bio', '');
+
+      const response = await apiClient.post('/users', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      const data: AuthResponse = response.data;
+
+      // After successful registration, login to get the token
+      const loginResponse = await apiClient.post('/auth/login', {
+        email: userData.get('email'),
+        password: userData.get('password'),
+      });
+
+      const data: AuthResponse = {
+        token: loginResponse.data.token,
+        user: response.data
+      };
 
       if (!data.token) {
         throw new Error('No token received from registration');
