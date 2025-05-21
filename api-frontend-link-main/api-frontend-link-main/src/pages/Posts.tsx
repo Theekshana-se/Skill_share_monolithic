@@ -14,20 +14,26 @@ const Posts = () => {
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      setIsLoading(true);
-      try {
-        const data = await postService.getAllPosts();
-        setPosts(data);
-      } catch (error) {
-        console.error('Error fetching posts:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPosts();
-  }, []);
+  const fetchPosts = async () => {
+    setIsLoading(true);
+    try {
+      const posts = await postService.getAllPosts(0, 10);
+      setPosts(posts);
+    } catch (error: any) {
+      console.error('Error fetching posts:', error);
+      /*toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.code === 'ECONNABORTED'
+          ? "Request timed out. Please try again."
+          : "Failed to load posts",
+      });*/
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  fetchPosts();
+}, []);
 
   const filteredPosts = posts.filter(post => 
     post.title.toLowerCase().includes(searchTerm.toLowerCase()) || 

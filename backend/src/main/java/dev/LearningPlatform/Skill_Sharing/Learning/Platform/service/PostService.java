@@ -51,4 +51,26 @@ public class PostService {
     public void deletePost(String id) {
         postRepository.deleteById(id);
     }
+
+    // New method to like a post
+    public Post likePost(String id) {
+        Optional<Post> postOpt = postRepository.findById(id);
+        if (postOpt.isEmpty()) {
+            throw new IllegalArgumentException("Post not found");
+        }
+        Post post = postOpt.get();
+        post.setLikes(post.getLikes() != null ? post.getLikes() + 1 : 1);
+        return postRepository.save(post);
+    }
+
+    // New method to dislike a post
+    public Post dislikePost(String id) {
+        Optional<Post> postOpt = postRepository.findById(id);
+        if (postOpt.isEmpty()) {
+            throw new IllegalArgumentException("Post not found");
+        }
+        Post post = postOpt.get();
+        post.setDislikes(post.getDislikes() != null ? post.getDislikes() + 1 : 1);
+        return postRepository.save(post);
+    }
 }

@@ -23,15 +23,19 @@ public class Post {
     private String userEmail;
 
     private String imageBase64;
-    
+
+    private Integer likes = 0; // Add likes field, default to 0
+    private Integer dislikes = 0; // Add dislikes field, default to 0
+
     private LocalDateTime createdAt;
-    
     private LocalDateTime updatedAt;
 
     // Constructor
     public Post() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        this.likes = 0;
+        this.dislikes = 0;
     }
 
     // Getters and setters
@@ -81,6 +85,22 @@ public class Post {
 
     public void setImageBase64(String imageBase64) {
         this.imageBase64 = imageBase64;
+    }
+
+    public Integer getLikes() {
+        return likes;
+    }
+
+    public void setLikes(Integer likes) {
+        this.likes = likes;
+    }
+
+    public Integer getDislikes() {
+        return dislikes;
+    }
+
+    public void setDislikes(Integer dislikes) {
+        this.dislikes = dislikes;
     }
 
     public LocalDateTime getCreatedAt() {

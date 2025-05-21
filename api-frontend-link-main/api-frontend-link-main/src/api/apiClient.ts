@@ -5,7 +5,7 @@ import { toast } from '@/components/ui/use-toast';
 const apiClient = axios.create({
   // BACKEND INTEGRATION: Replace this URL with your actual backend API URL
   baseURL: 'http://localhost:8080/api', 
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json'
   }

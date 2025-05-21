@@ -5,7 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface PostRepository extends MongoRepository<Post, String> {
-    List<Post> findByUserEmail(String userEmail);
     List<Post> findAllByOrderByCreatedAtDesc();
-    // Additional query methods if needed
+    List<Post> findByUserEmail(String userEmail);
 }

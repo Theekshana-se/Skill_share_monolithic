@@ -15,15 +15,15 @@ export interface Post {
 }
 
 export const postService = {
-  getAllPosts: async (): Promise<Post[]> => {
-    try {
-      const response = await apiClient.get('/posts');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      throw error;
-    }
-  },
+  getAllPosts: async (page: number = 0, size: number = 10): Promise<Post[]> => {
+  try {
+    const response = await apiClient.get(`/posts?page=${page}&size=${size}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+    throw error;
+  }
+},
   
   getPostById: async (id: string): Promise<Post> => {
     try {
