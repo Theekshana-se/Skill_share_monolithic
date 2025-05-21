@@ -187,7 +187,11 @@ const UserEnrolledCourses = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleUnenroll(course.id!)}
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to unenroll from this course?")) {
+                              handleUnenroll(course.id!);
+                            }
+                          }}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <X className="h-4 w-4 mr-1" />

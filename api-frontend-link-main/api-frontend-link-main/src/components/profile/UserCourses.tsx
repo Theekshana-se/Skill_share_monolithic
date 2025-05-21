@@ -92,7 +92,11 @@ const UserCourses = ({ courses, isOwnProfile, onDeleteCourse }: UserCoursesProps
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => handleDeleteCourse(course.id!)}
+                          onClick={() => {
+                            if (window.confirm("Are you sure you want to delete this course? This action cannot be undone.")) {
+                              handleDeleteCourse(course.id!);
+                            }
+                          }}
                         >
                           <Trash2 className="h-4 w-4 text-red-500" />
                           <span className="sr-only">Delete</span>

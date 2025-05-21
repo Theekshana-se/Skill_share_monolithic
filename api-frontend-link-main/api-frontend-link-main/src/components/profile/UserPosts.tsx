@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Edit, Trash2, Eye } from 'lucide-react';
 import { Post as BasePost } from '@/api/postService';
 import { toast } from '@/components/ui/use-toast';
+import { postService } from '@/api/postService';
 
 interface Post extends BasePost {
   imageBase64?: string;
@@ -19,7 +20,7 @@ interface UserPostsProps {
 const UserPosts = ({ posts, isOwnProfile, onDeletePost }: UserPostsProps) => {
   const handleDeletePost = async (postId: string) => {
     try {
-      // You may want to call your postService.deletePost here
+      await postService.deletePost(postId);
       onDeletePost(postId);
       toast({
         title: "Post deleted",
