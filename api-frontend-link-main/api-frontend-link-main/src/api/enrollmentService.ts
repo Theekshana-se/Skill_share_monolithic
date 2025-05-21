@@ -185,5 +185,44 @@ export const enrollmentService = {
       console.error('[DEBUG] Error checking enrollment status:', error);
       return false;
     }
+  },
+
+  unenrollFromCourse: async (courseId: string): Promise<void> => {
+    console.log('[DEBUG] Attempting to unenroll from course:', courseId);
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+
+    if (!token || !user) {
+      throw new Error('Authentication required');
+    }
+
+    try {
+      console.log('[DEBUG] Sending unenroll request for course:', courseId);
+      const response = await axios.delete(`${API_URL}/enrollments/${courseId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('[DEBUG] Unenroll response:', response);
+      
+      if (response.status !== 200) {
+        throw new Error(response.data || 'Failed to unenroll from course');
+      }
+    } catch (error) {
+      console.error('[DEBUG] Error unenrolling from course:', error);
+      if (axios.isAxiosError(error)) {
+        const errorMessage = error.response?.data || error.message;
+        console.error('[DEBUG] Error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          message: errorMessage
+        });
+        throw new Error(errorMessage);
+      }
+      throw error;
+    }
   }
 }; 

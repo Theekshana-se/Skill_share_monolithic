@@ -156,4 +156,74 @@ public class EnrollmentService {
             return false;
         }
     }
+
+    @Transactional
+    public void unenrollUser(String userEmail, String courseId) {
+        System.out.println("[DEBUG] ===== Starting Unenrollment Process =====");
+        System.out.println("[DEBUG] User Email: " + userEmail);
+        System.out.println("[DEBUG] Course ID: " + courseId);
+        
+        try {
+            // Check if user exists
+            Optional<User> userOpt = userRepository.findByEmail(userEmail);
+            if (userOpt.isEmpty()) {
+                System.out.println("[DEBUG] User not found: " + userEmail);
+                throw new IllegalArgumentException("User not found");
+            }
+            User user = userOpt.get();
+            System.out.println("[DEBUG] Found user: " + user.getEmail());
+
+            // Check if course exists
+            Optional<Course> courseOpt = courseRepository.findById(courseId);
+            if (courseOpt.isEmpty()) {
+                System.out.println("[DEBUG] Course not found: " + courseId);
+                throw new IllegalArgumentException("Course not found");
+            }
+            Course course = courseOpt.get();
+            System.out.println("[DEBUG] Found course: " + course.getCourseName());
+
+            // Get all enrollments for this user-course combination
+            List<Enrollment> enrollments = enrollmentRepository.findAll().stream()
+                .filter(e -> e.getUserEmail().equals(userEmail) && e.getCourseId().equals(courseId))
+                .toList();
+
+            if (enrollments.isEmpty()) {
+                System.out.println("[DEBUG] No enrollments found for user " + userEmail + " in course " + courseId);
+                throw new IllegalArgumentException("User is not enrolled in this course");
+            }
+
+            System.out.println("[DEBUG] Found " + enrollments.size() + " enrollment(s) to delete");
+
+            // Delete all enrollments
+            try {
+                for (Enrollment enrollment : enrollments) {
+                    enrollmentRepository.delete(enrollment);
+                    System.out.println("[DEBUG] Deleted enrollment: " + enrollment.getId());
+                }
+                System.out.println("[DEBUG] Successfully deleted all enrollments");
+            } catch (Exception e) {
+                System.out.println("[DEBUG] Error deleting enrollments: " + e.getMessage());
+                throw new RuntimeException("Failed to delete enrollments", e);
+            }
+
+            // Update user's enrolled courses
+            try {
+                user.removeEnrolledCourse(courseId);
+                userRepository.save(user);
+                System.out.println("[DEBUG] Successfully updated user's enrolled courses");
+            } catch (Exception e) {
+                System.out.println("[DEBUG] Error updating user: " + e.getMessage());
+                throw new RuntimeException("Failed to update user's enrolled courses", e);
+            }
+
+            System.out.println("[DEBUG] ===== Unenrollment Process Completed Successfully =====");
+        } catch (IllegalArgumentException e) {
+            System.out.println("[DEBUG] Validation error during unenrollment: " + e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            System.out.println("[DEBUG] Unexpected error during unenrollment: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("An unexpected error occurred during unenrollment", e);
+        }
+    }
 } 
