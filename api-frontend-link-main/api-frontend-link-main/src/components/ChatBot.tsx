@@ -28,9 +28,14 @@ const ChatBot = () => {
   const chatRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  
+
+
   // HuggingFace API configuration
   const API_URL = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1";
-  const API_KEY = "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";
+  const API_KEY = import.meta.env.VITE_HUGGINGFACE_API_KEY;
+
+  console.log("HuggingFace API Key:", API_KEY);
 
   useEffect(() => {
     if (scrollRef.current) {
