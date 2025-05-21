@@ -3,7 +3,7 @@ import { Comment, commentService } from '@/api/commentService';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
 import { Textarea } from '@/components/ui/textarea';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -11,9 +11,11 @@ interface CommentItemProps {
   comment: Comment;
   onDelete: (commentId: string) => void;
   onUpdate: (commentId: string, newContent: string) => void;
+  onLike: (commentId: string) => void;
+  onDislike: (commentId: string) => void;
 }
 
-const CommentItem = ({ comment, onDelete, onUpdate }: CommentItemProps) => {
+const CommentItem = ({ comment, onDelete, onUpdate, onLike, onDislike }: CommentItemProps) => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
@@ -156,7 +158,29 @@ const CommentItem = ({ comment, onDelete, onUpdate }: CommentItemProps) => {
             </div>
           </div>
         ) : (
-          <p className="mt-1">{comment.content}</p>
+          <>
+            <p className="mt-1">{comment.content}</p>
+            <div className="flex items-center gap-4 mt-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onLike(comment.id!)}
+                className="flex items-center text-gray-500 hover:text-purple-600"
+              >
+                <ThumbsUp className="h-4 w-4 mr-1" />
+                <span>{comment.likes || 0}</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDislike(comment.id!)}
+                className="flex items-center text-gray-500 hover:text-purple-600"
+              >
+                <ThumbsDown className="h-4 w-4 mr-1" />
+                <span>{comment.dislikes || 0}</span>
+              </Button>
+            </div>
+          </>
         )}
       </div>
     </div>

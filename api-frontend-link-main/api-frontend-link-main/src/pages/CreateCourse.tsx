@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,6 +13,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Course, courseService } from '@/api/courseService';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Trash2, ImagePlus, X } from 'lucide-react';
+import { FieldArrayWithId, UseFormReturn } from 'react-hook-form';
 
 const lessonSchema = z.object({
   title: z.string().min(3, 'Lesson title must be at least 3 characters'),
@@ -36,28 +37,145 @@ const formSchema = z.object({
   thumbnail: z.string().optional(),
 });
 
+interface ModuleCardProps {
+  module: FieldArrayWithId<z.infer<typeof formSchema>, 'modules', 'id'>;
+  moduleIndex: number;
+  onRemove: (index: number) => void;
+  form: UseFormReturn<z.infer<typeof formSchema>>;
+}
+
+const ModuleCard = ({ module, moduleIndex, onRemove, form }: ModuleCardProps) => {
+  const { fields: lessonFields, append: appendLesson, remove: removeLesson } = useFieldArray({
+    control: form.control,
+    name: `modules.${moduleIndex}.lessons`
+  });
+
+  return (
+    <Card className="border-0 shadow-md bg-gradient-to-br from-white to-indigo-50">
+      <CardContent className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-medium text-gray-700">Module {moduleIndex + 1}</h3>
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={() => onRemove(moduleIndex)}
+            disabled={moduleFields.length === 1}
+            className="hover:bg-red-600 hover:text-white"
+          >
+            <Trash2 className="h-4 w-4 mr-1" /> Remove
+          </Button>
+        </div>
+        <FormField
+          control={form.control}
+          name={`modules.${moduleIndex}.title`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-gray-700">Module Title</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. Introduction to Programming" className="border-gray-300 focus:border-purple-500" {...field} />
+              </FormControl>
+              <FormMessage className="text-red-500" />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name={`modules.${moduleIndex}.description`}
+          render={({ field }) => (
+            <FormItem className="mt-4">
+              <FormLabel className="text-gray-700">Module Description</FormLabel>
+              <FormControl>
+                <Textarea placeholder="Describe the module content" className="border-gray-300 focus:border-purple-500" {...field} />
+              </FormControl>
+              <FormMessage className="text-red-500" />
+            </FormItem>
+          )}
+        />
+        <div className="mt-4">
+          <h4 className="text-md font-semibold text-gray-700 mb-2">Lessons</h4>
+          {lessonFields.map((lesson, lessonIndex) => (
+            <div key={lesson.id} className="ml-6 border-l-2 border-purple-200 pl-4 mb-4 bg-white/80 rounded-lg shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <h5 className="text-sm font-medium text-gray-600">Lesson {lessonIndex + 1}</h5>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => removeLesson(lessonIndex)}
+                  disabled={lessonFields.length === 1}
+                  className="hover:bg-red-600 hover:text-white"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> Remove
+                </Button>
+              </div>
+              <FormField
+                control={form.control}
+                name={`modules.${moduleIndex}.lessons.${lessonIndex}.title`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-700">Lesson Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Variables and Data Types" className="border-gray-300 focus:border-purple-500" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={`modules.${moduleIndex}.lessons.${lessonIndex}.content`}
+                render={({ field }) => (
+                  <FormItem className="mt-2">
+                    <FormLabel className="text-gray-700">Lesson Content</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Enter lesson content" className="border-gray-300 focus:border-purple-500" {...field} />
+                    </FormControl>
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-2 bg-purple-50 text-purple-600 hover:bg-purple-100"
+            onClick={() => appendLesson({ title: '', content: '' })}
+          >
+            <Plus className="h-4 w-4 mr-1" /> Add Lesson
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const CreateCourse = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const { user: currentUser, isAuthenticated } = useAuth();
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       courseName: '',
-      courseLevel: '',
+      courseLevel: 'Beginner',
       institute: '',
       startDate: '',
       duration: 1,
-      courseType: '',
+      courseType: 'Online',
       modules: [{ title: '', description: '', lessons: [{ title: '', content: '' }] }],
-      thumbnail: '',
-    },
+      thumbnail: ''
+    }
   });
 
   const { fields: moduleFields, append: appendModule, remove: removeModule } = useFieldArray({
     control: form.control,
-    name: 'modules',
+    name: 'modules'
   });
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,7 +204,7 @@ const CreateCourse = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result as string;
-        setPreviewImage(base64String);
+        setImagePreview(base64String);
         form.setValue('thumbnail', base64String);
       };
       reader.readAsDataURL(file);
@@ -94,12 +212,12 @@ const CreateCourse = () => {
   };
 
   const removeImage = () => {
-    setPreviewImage(null);
+    setImagePreview(null);
     form.setValue('thumbnail', '');
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!isAuthenticated) {
+    if (!user) {
       toast({
         variant: 'destructive',
         title: 'Authentication Required',
@@ -119,7 +237,7 @@ const CreateCourse = () => {
         duration: values.duration,
         courseType: values.courseType,
         progress: 0,
-        userId: currentUser?.email,
+        userId: user.email,
         thumbnail: values.thumbnail, // Ensure thumbnail is included
         modules: values.modules.map((module, mIndex) => ({
           id: `mod-${mIndex + 1}`,
@@ -153,7 +271,7 @@ const CreateCourse = () => {
   };
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!user) {
       toast({
         variant: 'destructive',
         title: 'Authentication Required',
@@ -161,7 +279,7 @@ const CreateCourse = () => {
       });
       navigate('/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [user, navigate]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -182,10 +300,10 @@ const CreateCourse = () => {
                 <div className="space-y-4">
                   <FormLabel className="text-gray-700">Course Thumbnail</FormLabel>
                   <div className="flex flex-col items-center justify-center w-full">
-                    {previewImage ? (
+                    {imagePreview ? (
                       <div className="relative w-full max-w-md">
                         <img
-                          src={previewImage}
+                          src={imagePreview}
                           alt="Course thumbnail preview"
                           className="w-full h-48 object-cover rounded-lg shadow-md"
                         />
@@ -211,6 +329,7 @@ const CreateCourse = () => {
                           className="hidden"
                           accept="image/*"
                           onChange={handleImageUpload}
+                          ref={fileInputRef}
                         />
                       </label>
                     )}
@@ -322,113 +441,15 @@ const CreateCourse = () => {
                 {/* Modules */}
                 <div className="space-y-6">
                   <h2 className="text-xl font-semibold text-gray-800">Modules & Lessons</h2>
-                  {moduleFields.map((module, moduleIndex) => {
-                    const { fields: lessonFields, append: appendLesson, remove: removeLesson } = useFieldArray({
-                      control: form.control,
-                      name: `modules.${moduleIndex}.lessons`,
-                    });
-
-                    return (
-                      <Card key={module.id} className="border-0 shadow-md bg-gradient-to-br from-white to-indigo-50">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-medium text-gray-700">Module {moduleIndex + 1}</h3>
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => removeModule(moduleIndex)}
-                              disabled={moduleFields.length === 1}
-                              className="hover:bg-red-600 hover:text-white"
-                            >
-                              <Trash2 className="h-4 w-4 mr-1" /> Remove
-                            </Button>
-                          </div>
-                          <FormField
-                            control={form.control}
-                            name={`modules.${moduleIndex}.title`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-gray-700">Module Title</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="e.g. Introduction to Programming" className="border-gray-300 focus:border-purple-500" {...field} />
-                                </FormControl>
-                                <FormMessage className="text-red-500" />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`modules.${moduleIndex}.description`}
-                            render={({ field }) => (
-                              <FormItem className="mt-4">
-                                <FormLabel className="text-gray-700">Module Description</FormLabel>
-                                <FormControl>
-                                  <Textarea placeholder="Describe the module content" className="border-gray-300 focus:border-purple-500" {...field} />
-                                </FormControl>
-                                <FormMessage className="text-red-500" />
-                              </FormItem>
-                            )}
-                          />
-                          <div className="mt-4">
-                            <h4 className="text-md font-semibold text-gray-700 mb-2">Lessons</h4>
-                            {lessonFields.map((lesson, lessonIndex) => (
-                              <div key={lesson.id} className="ml-6 border-l-2 border-purple-200 pl-4 mb-4 bg-white/80 rounded-lg shadow-sm">
-                                <div className="flex justify-between items-center mb-2">
-                                  <h5 className="text-sm font-medium text-gray-600">Lesson {lessonIndex + 1}</h5>
-                                  <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => removeLesson(lessonIndex)}
-                                    disabled={lessonFields.length === 1}
-                                    className="hover:bg-red-600 hover:text-white"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-1" /> Remove
-                                  </Button>
-                                </div>
-                                <FormField
-                                  control={form.control}
-                                  name={`modules.${moduleIndex}.lessons.${lessonIndex}.title`}
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel className="text-gray-700">Lesson Title</FormLabel>
-                                      <FormControl>
-                                        <Input placeholder="e.g. Variables and Data Types" className="border-gray-300 focus:border-purple-500" {...field} />
-                                      </FormControl>
-                                      <FormMessage className="text-red-500" />
-                                    </FormItem>
-                                  )}
-                                />
-                                <FormField
-                                  control={form.control}
-                                  name={`modules.${moduleIndex}.lessons.${lessonIndex}.content`}
-                                  render={({ field }) => (
-                                    <FormItem className="mt-2">
-                                      <FormLabel className="text-gray-700">Lesson Content</FormLabel>
-                                      <FormControl>
-                                        <Textarea placeholder="Enter lesson content" className="border-gray-300 focus:border-purple-500" {...field} />
-                                      </FormControl>
-                                      <FormMessage className="text-red-500" />
-                                    </FormItem>
-                                  )}
-                                />
-                              </div>
-                            ))}
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="mt-2 bg-purple-50 text-purple-600 hover:bg-purple-100"
-                              onClick={() => appendLesson({ title: '', content: '' })}
-                            >
-                              <Plus className="h-4 w-4 mr-1" /> Add Lesson
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                  {moduleFields.map((module, moduleIndex) => (
+                    <ModuleCard
+                      key={module.id}
+                      module={module}
+                      moduleIndex={moduleIndex}
+                      onRemove={removeModule}
+                      form={form}
+                    />
+                  ))}
                   <Button
                     type="button"
                     variant="outline"

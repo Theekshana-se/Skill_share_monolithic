@@ -39,20 +39,7 @@ export const courseService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching courses:', error);
-      return [
-        {
-          id: '1',
-          courseName: 'Web Development Fundamentals',
-          courseLevel: 'Beginner',
-          institute: 'Tech Academy',
-          startDate: '2023-06-01',
-          duration: 8,
-          courseType: 'Online',
-          progress: 75,
-          userId: 'example@example.com', // Use email
-          modules: []
-        }
-      ];
+      throw error;
     }
   },
 
@@ -93,59 +80,54 @@ export const courseService = {
   },
 
   createCourse: async (course: Course): Promise<Course> => {
-    const userStr = localStorage.getItem('user');
-    const user = userStr ? JSON.parse(userStr) : null;
     try {
-      if (user && user.email) {
-        course.userId = user.email; // Use email from auth
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      
+      if (!user?.email) {
+        throw new Error('User email is required to create a course');
       }
-      console.log('Creating course with data:', course); // Debug log
+      
+      course.userId = user.email;
+      console.log('Creating course with data:', course);
+      
       const response = await apiClient.post('/courses', course);
+      console.log('Course created successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error creating course:', error);
-      const localCourses = JSON.parse(localStorage.getItem('courses') || '[]');
-      const newCourse = {
-        ...course,
-        id: Date.now().toString(),
-        userId: user?.email || 'default@example.com',
-        modules: course.modules || []
-      };
-      localCourses.push(newCourse);
-      localStorage.setItem('courses', JSON.stringify(localCourses));
-      return newCourse;
+      throw error;
     }
   },
 
   updateCourse: async (id: string, course: Course): Promise<Course> => {
-    const userStr = localStorage.getItem('user');
-    const user = userStr ? JSON.parse(userStr) : null;
     try {
-      if (user && user.email) {
-        course.userId = user.email; // Use email from auth
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      
+      if (!user?.email) {
+        throw new Error('User email is required to update a course');
       }
-      console.log('Updating course with data:', course); // Debug log
+      
+      course.userId = user.email;
+      console.log('Updating course with data:', course);
+      
       const response = await apiClient.put(`/courses/${id}`, course);
+      console.log('Course updated successfully:', response.data);
       return response.data;
     } catch (error) {
       console.error(`Error updating course with ID ${id}:`, error);
-      const localCourses = JSON.parse(localStorage.getItem('courses') || '[]');
-      const updatedCourses = localCourses.map((c: Course) =>
-        c.id === id ? { ...c, ...course } : c
-      );
-      localStorage.setItem('courses', JSON.stringify(updatedCourses));
-      return { ...course, id };
+      throw error;
     }
   },
 
   deleteCourse: async (id: string): Promise<void> => {
     try {
       await apiClient.delete(`/courses/${id}`);
+      console.log('Course deleted successfully');
     } catch (error) {
       console.error(`Error deleting course with ID ${id}:`, error);
-      const localCourses = JSON.parse(localStorage.getItem('courses') || '[]');
-      const filteredCourses = localCourses.filter((c: Course) => c.id !== id);
-      localStorage.setItem('courses', JSON.stringify(filteredCourses));
+      throw error;
     }
   },
 
@@ -155,8 +137,7 @@ export const courseService = {
       return response.data;
     } catch (error) {
       console.error(`Error fetching courses for user ${userId}:`, error);
-      const localCourses = JSON.parse(localStorage.getItem('courses') || '[]');
-      return localCourses.filter((course: Course) => course.userId === userId);
+      throw error;
     }
   }
 };

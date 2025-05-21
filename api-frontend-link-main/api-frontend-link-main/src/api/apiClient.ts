@@ -19,9 +19,11 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
+    console.log('Making request to:', config.url, 'with data:', config.data);
     return config;
   },
   (error) => {
+    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -29,9 +31,18 @@ apiClient.interceptors.request.use(
 // Add response interceptor for error handling
 apiClient.interceptors.response.use(
   (response) => {
+    console.log('Received response from:', response.config.url, 'with data:', response.data);
     return response;
   },
   (error) => {
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+
     // Handle 401 Unauthorized errors (expired tokens, etc.)
     if (error.response && error.response.status === 401) {
       // Clear auth data
@@ -77,6 +88,21 @@ apiClient.interceptors.response.use(
         variant: 'destructive',
         title: 'Connection Error',
         description: 'Unable to connect to the server. Please check your internet connection.',
+      });
+    }
+
+    // Handle other errors
+    if (error.response?.data?.message) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.response.data.message,
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'An unexpected error occurred. Please try again.',
       });
     }
     

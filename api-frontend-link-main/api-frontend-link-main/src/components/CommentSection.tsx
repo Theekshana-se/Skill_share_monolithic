@@ -153,23 +153,9 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
                 comment={comment}
                 onDelete={handleDeleteComment}
                 onUpdate={handleUpdateComment}
+                onLike={handleLikeComment}
+                onDislike={handleDislikeComment}
               />
-              <div className="mt-2 flex items-center space-x-4 pl-14">
-                <button
-                  onClick={() => handleLikeComment(comment.id!)}
-                  className="flex items-center text-gray-500 hover:text-purple-600"
-                >
-                  <ThumbsUp className="h-4 w-4 mr-1" />
-                  <span>{comment.likes || 0}</span>
-                </button>
-                <button
-                  onClick={() => handleDislikeComment(comment.id!)}
-                  className="flex items-center text-gray-500 hover:text-purple-600"
-                >
-                  <ThumbsDown className="h-4 w-4 mr-1" />
-                  <span>{comment.dislikes || 0}</span>
-                </button>
-              </div>
             </CardContent>
           </Card>
         ))}
